@@ -8,7 +8,8 @@ class
     Capacity = Nat, -- capacities
     StopId = Text,  -- names of stops
     Stop = (StopId >< Capacity), -- A stop
-    Connection = (Capacity >< DrivingTime >< Headway) -- A connection
+    ConnectionInformation = (Capacity >< DrivingTime >< Headway), -- basic connection information
+    Connection = (Stop >< Stop >< ConnectionInformation)
   value /* generators */
     empty :  Net = ... ,  -- the empty net
 
