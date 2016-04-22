@@ -11,13 +11,13 @@ class
     Stop = (StopId >< Capacity), -- A stop
     ConnectionInformation = (Capacity >< DrivingTime >< Headway), -- basic connection information
     Connection = StopId >< StopId >< ConnectionInformation
+    
   value /* generators */
     empty :  Net = [],  -- the empty net
 
     -- insert a stop with a given name and capacity 
     insertStop : StopId >< Capacity >< Net -> Net
-    insertStop(SID, Cap, Net) is Net !! [ SID +> (Cap,{})]
-	pre ~isIn(SID,Net),
+    insertStop(SID, Cap, n) is n !! [ SID +> (Cap,{})],
 	
     -- add a connection between given stops, 
     -- with the given capacity, minimum driving time and minimum headway
@@ -35,6 +35,7 @@ class
     			Net !! [SID2 +> (capB,newConnectB)]
     		end
     	end
+    	
   value /* observers */
     -- check whether a stop is in a network     
     isIn : StopId >< Net -> Bool

@@ -1,0 +1,14 @@
+NET
+
+scheme testNet = 
+extend NET with
+class
+	value
+		net : Net = []
+	test_case
+		--[empty] empty,
+		[insertStop] insertStop("A",2,net),
+		[insertStopB] insertStop("B",3,net),
+		[isWellformed] isWellformed(net),
+		[addConnection] addConnection("A","B",2,3,10,net)
+end
