@@ -11,7 +11,7 @@ class
 
       -- add to a time table an empty plan for a new tram
       addTram: TramId >< TimeTable -> TimeTable
-      addTram(trid,t) is time !! [tid +> <..>],
+      addTram(trid,t) is t !! [trid +> <..>],
 
       -- add a stop with arrival time and departure time to the plan for a given tram
       addStop: TramId >< StopId >< Time >< Time >< TimeTable -> TimeTable
@@ -21,20 +21,19 @@ class
     			addPl = pla ^ <.(stid,time1,time2).> -- add new stop to plan
     			--do we need to check the time??like compare the arrive time with existed plan
     		in
-    			t !! [tid +> addPl] -- update the timetable
+    			t !! [trid +> addPl] -- update the timetable
     		end
   value /* observers */
      -- check whether a tram with a given name exists in a given time table
      isIn : TramId >< TimeTable -> Bool
-     isIn(tid,t) is tid isin dom t,
+     isIn(tid,t) is tid isin dom t
 
      -- you can add more observers here
      -- ...
  
-  value /* predicates to check time tables */   
-     isWellformed : TimeTable >< Net -> Bool
-     isWellformed(t, n) is ...,
+  --value /* predicates to check time tables */   
+     -- isWellformed : TimeTable >< Net -> Bool
+     -- isWellformed(t, n) is ...,
 
-     ...
-     
+     -- ...
 end  
