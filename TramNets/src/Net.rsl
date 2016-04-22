@@ -3,6 +3,7 @@ class
   type
   	-- not sure if this is the right way to represent ?? 
     Net = StopId -m-> (Capacity >< Connection-set), -- tram nets
+    mapValues = (Capacity >< Connection-set),
     Headway = Time, -- minimum headways
     DrivingTime = Time, -- minimum driving times
     Time = Nat, -- times in number of minutes
@@ -44,14 +45,18 @@ class
  
     -- check whether two stops are directly connected in a network        
     areDirectlyConnected : StopId >< StopId >< Net -> Bool
-   	areDirectlyConnected(SID,SID2,Net) is 
+   	areDirectlyConnected(SID,SID2,n) is 
    		let
-   			(capA,connectA) = Net(SID),
-   			(capB,connectB) = Net(SID2)
+   			(capA,connectA) = n(SID)
    		in
-   			(exists (SID,SID2,connectInfo): Connection :- (SID,SID2,connectInfo) isin connectA) /\
-   				(exists (SID,SID2,connectInfo1): Connection :- (SID,SID2,connectInfo1) isin connectB)
-   		end,
+   			(exists (SID3,SID4,connectInfo): Connection :- (SID3,SID4,connectInfo) isin connectA /\ areEqual(SID,SID2,SID3,SID4))
+   		end
+   	pre isWellformed(n),
+   	
+   	-- support function
+   	areEqual : StopId >< StopId >< StopId >< StopId -> Bool
+   	areEqual(SID1,SID2,SID3,SID4) is SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3,
+   	
     -- get minimum head way between two connected stops        
    	minHeadway : StopId >< StopId >< Net -~-> Headway
     minHeadway(SID,SID2,Net) is 
@@ -61,10 +66,11 @@ class
     	in
     		if(areDirectlyConnected(SID,SID2,Net)) then
     			let
-    				(SID,SID2,(Cap,DTime,HWay)) = hd connectA
+    				--(SID,SID2,(Cap,DTime,HWay)) = connectA
+    				HWay = 0
     			in
     				if(exists (SID,SID2,(Cap,DTime,HWay)): Connection :- (SID,SID2,(Cap,DTime,HWay)) isin connectB) then
-    				HWay
+    					HWay
     				else 0 end
     			end
     		else
@@ -72,7 +78,7 @@ class
     		end
     	end,
 
-    -- get minimum driving time between two connected stops        
+   -- get minimum driving time between two connected stops        
    -- minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
   --  ..., 
 
@@ -88,20 +94,19 @@ class
   		in
   			cap
   		end
+  		
  value /* predicates to check nets */
    isWellformed : Net -> Bool
-   isWellformed(n) is n ~= [] /\ 
-   		(all stID1 : StopId :- stID1 isin n => 
-   			(n(stID1) = (0,{}))  --no stop should contain empty connection-list or have a capacity of 0 (defeats the purpose)
+   isWellformed(n) is n ~= [] /\ -- we check that the map is not empty
+   			(all SID : StopId :- SID isin n => 
+   				(n(SID) ~= (0,{})) --no stop should contain empty connection-list or have a capacity of 0 (defeats the purpose)
    			/\
-   			(let      -- There should not exists two connections in a connection-list where the stops are identical
-   				(capA,connectA) = n(stID1)
+   			(let  -- There should not exists two connections in a connection-list where the stops are identical
+   				(capA,connectA) = n(SID)
    			 in
-   				(all (stID2,stID3,connInfo) : Connection :- (stID2,stID3,connInfo) isin connectA => 
-   					~(exists (stID4,stID5,connInfo2) : Connection :- (stID4,stID5,connInfo2) isin connectA /\
-   						 (stID4,stID5,connInfo2) ~= (stID2,stID3,connInfo2) /\ stID2 = stID4 /\ stID3 = stID5))
-   			end))
- test_case 
- 	[insertStop]insertStop("1",2,[]),
- 	[areDirectlyConnected]areDirectlyConnected("1","2",["1" +> (2, {("1","2",(3,10,2))}), "2" +>(3, {("1","2",(3,10,2))})])
+   				(all (sid1,sid2,connInfo) : Connection :- (sid1,sid2,connInfo) isin connectA => 
+   					(all (sid3,sid4,connInfo2) : Connection :- (sid3,sid4,connInfo2) isin connectA /\
+   						 (sid3,sid4,connInfo2) ~= (sid1,sid2,connInfo) => ~areEqual(sid1,sid2,sid3,sid4)))
+   			end)
+   			)
 end  

@@ -4,13 +4,22 @@ scheme testNet =
 extend NET with
 class
 	value
-		net : Net = ["1" +> (2, {}), "2" +>(3, {})],
-		netValue: Net = ["1" +> (2, {("1","2",(3,10,2))}), "2" +>(3, {("1","2",(3,10,2))})]
+		net : Net = ["A" +> (2, {}), "B" +>(3, {})],
+		netValue: Net = [	"A" +> (2, {("A","B",(3,10,2))}), 
+						 	"B" +> (3, {("A","B",(3,10,2)),("B","C",(3,12,4)),("B","D",(2,7,3))}), 
+						 	"C" +> (2, {("B","C",(3,12,4))}),
+						 	"D" +> (2, {("B","D",(2,7,3))})
+						 	],
+		netValueNotWF: Net = ["A" +> (2, {("A","B",(3,10,2)),("A","B",(2,10,2))}), "B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), "C" +> (2, {("B","C",(3,12,4))})]
 	test_case
 		--[empty] empty,
-		[insertStop] insertStop("1",2,net),
-		[insertStopB] insertStop("2",3,net),
+		[insertStop] insertStop("A",2,net),
+		[insertStopB] insertStop("B",3,net),
 		[isWellformed] isWellformed(netValue),
-		[addConnection] addConnection("1","2",2,3,10,net),
-		[areDirectlyConnected]areDirectlyConnected("1","2",netValue)
+		[addConnection] addConnection("A","B",2,3,10,net),
+		[areDirectlyConnected]areDirectlyConnected("A","B",netValue),
+		[areDirectlyConnected2]areDirectlyConnected("A","C",netValue),
+		[minHeadway] minHeadway("B","C",netValue),
+		[netValueNotWF] isWellformed(netValueNotWF),
+		[netValue] minHeadway("B","C",netValue)
 end
