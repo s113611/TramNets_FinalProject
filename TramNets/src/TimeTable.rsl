@@ -31,9 +31,17 @@ class
      -- you can add more observers here
      -- ...
  
-  --value /* predicates to check time tables */   
-     -- isWellformed : TimeTable >< Net -> Bool
-     -- isWellformed(t, n) is ...,
-
-     -- ...
+  value /* predicates to check time tables */   
+      isWellformed : TimeTable >< Net -> Bool
+      isWellformed(t, n) is 
+      	(all trId : TramId :- trId isin dom t=>
+      		let
+      			plan = t(trId),
+      			firstStop = hd plan,
+      			secondStop = hd (tl plan),
+      			(sid,arrTimeA,departTimeA) = firstStop,
+      			(sid2,arrTimeB,departTimeB) = secondStop
+      		in
+      			(areDirectlyConnected(sid,sid2,n)) /\ (arrTimeB-departTimeA) > minDrivingTime(sid,sid2,n)
+      		end)
 end  
