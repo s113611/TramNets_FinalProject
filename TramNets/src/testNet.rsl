@@ -25,14 +25,15 @@ class
 		[areDirectlyConnected]areDirectlyConnected("D","B",netValue),
 		[areDirectlyConnected1]areDirectlyConnected("B","A",netValue),
 		[areDirectlyConnected2]areDirectlyConnected("A","C",netValue),
-		
-		[minDrivingTime] minDrivingTime("C","B",netValue),
+
 		[netValueNotWF] isWellformed(netValueNotWF),
-		[minDrivingTime1] minDrivingTime("B","A",netValue),
-		[minDrivingTime2] minDrivingTime("B","D",netValue),
 		
-		[getConnection]getConnection("C","B",netValue),
-		[getConnection1]getConnection("D","B",netValue),
+		[minHeadway]minHeadway("A","B",netValue),
+		[minHeadway1]minHeadway("B","D",netValue),
+		
+		[minDrivingTime]minDrivingTime("A","B",netValue),
+		[minDrivingTime1]minDrivingTime("B","D",netValue),
+		[minDrivingTime2]minDrivingTime("C","B",netValue),
 		
 		[capacity]capacity("A",netValue)
 end

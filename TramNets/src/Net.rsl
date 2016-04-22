@@ -3,7 +3,6 @@ class
   type
   	-- not sure if this is the right way to represent ?? 
     Net = StopId -m-> (Capacity >< Connection-set), -- tram nets
-    ConnSet = Connection-set,
     Headway = Time, -- minimum headways
     DrivingTime = Time, -- minimum driving times
     Time = Nat, -- times in number of minutes
@@ -60,16 +59,16 @@ class
     -- get minimum head way between two connected stops        
    	minHeadway : StopId >< StopId >< Net -~-> Headway
     minHeadway(SID,SID2,n) is 
-    		if(areDirectlyConnected(SID,SID2,n)) then
-    			let
-    				(capA,connectA) = n(SID),
-    				(sid1,sid2,( HWay,Cap,DTime)) = getConnection(capA,connectA,SID,SID2)
-    			in
-    				HWay
-    			end
-    		else
-    			0
-    		end,
+    	if(areDirectlyConnected(SID,SID2,n)) then
+    		let
+    			(capA,connectA) = n(SID),
+    			(sid1,sid2,(Cap,DTime,HWay)) = getConnection(capA,connectA,SID,SID2)
+    		in
+    			HWay
+    		end
+    	else
+    		0
+    	end,
 
 	-- is used to find a specfic connection
 	getConnection : Capacity >< Connection-set >< StopId >< StopId -> Connection
@@ -85,12 +84,32 @@ class
 		end,
 	
    -- get minimum driving time between two connected stops        
-   -- minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
-  --  ..., 
+   minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
+   minDrivingTime(SID,SID2,n) is
+   		if(areDirectlyConnected(SID,SID2,n)) then
+    		let
+    			(capA,connectA) = n(SID),
+    			(sid1,sid2,(Cap,DTime,HWay)) = getConnection(capA,connectA,SID,SID2)
+    		in
+    			DTime
+    		end
+    	else
+    		0
+    	end, 
 
     -- get the capacity for a connection between two connected stops
-  --  capacity : StopId >< StopId >< Net -~-> Capacity
- --   ...,
+    connectedCapacity : StopId >< StopId >< Net -~-> Capacity
+ 	connectedCapacity(SID,SID2,n) is
+ 		if(areDirectlyConnected(SID,SID2,n)) then
+    		let
+    			(capA,connectA) = n(SID),
+    			(sid1,sid2,(Cap,DTime,HWay)) = getConnection(capA,connectA,SID,SID2)
+    		in
+    			Cap
+    		end
+    	else
+    		0
+    	end,
  
     -- get the capacity of a stop 
  	capacity : StopId >< Net -~-> Capacity
