@@ -3,7 +3,7 @@ class
   type
   	-- not sure if this is the right way to represent ?? 
     Net = StopId -m-> (Capacity >< Connection-set), -- tram nets
-    mapValues = (Capacity >< Connection-set),
+    ConnSet = Connection-set,
     Headway = Time, -- minimum headways
     DrivingTime = Time, -- minimum driving times
     Time = Nat, -- times in number of minutes
@@ -59,25 +59,31 @@ class
    	
     -- get minimum head way between two connected stops        
    	minHeadway : StopId >< StopId >< Net -~-> Headway
-    minHeadway(SID,SID2,Net) is 
-    	let
-    		(capA,connectA) = Net(SID),
-    		(capB,connectB) = Net(SID2)
-    	in
-    		if(areDirectlyConnected(SID,SID2,Net)) then
+    minHeadway(SID,SID2,n) is 
+    		if(areDirectlyConnected(SID,SID2,n)) then
     			let
-    				--(SID,SID2,(Cap,DTime,HWay)) = connectA
-    				HWay = 0
+    				(capA,connectA) = n(SID),
+    				(sid1,sid2,( HWay,Cap,DTime)) = getConnection(capA,connectA,SID,SID2)
     			in
-    				if(exists (SID,SID2,(Cap,DTime,HWay)): Connection :- (SID,SID2,(Cap,DTime,HWay)) isin connectB) then
-    					HWay
-    				else 0 end
+    				HWay
     			end
     		else
     			0
-    		end
-    	end,
+    		end,
 
+	-- is used to find a specfic connection
+	getConnection : Capacity >< Connection-set >< StopId >< StopId -> Connection
+	getConnection(cap,connectionSet,SID1,SID2) is
+		let
+			(sid1,sid2,(capacity,DTime,HWay)) = hd connectionSet
+		in
+			if (areEqual(sid1,sid2,SID1,SID2)) then
+				(sid1,sid2,(capacity,DTime,HWay))
+			else
+				getConnection(cap,connectionSet \ {hd connectionSet},SID1,SID2)
+			end
+		end,
+	
    -- get minimum driving time between two connected stops        
    -- minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
   --  ..., 

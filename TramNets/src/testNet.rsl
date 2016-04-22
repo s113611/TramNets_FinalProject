@@ -21,5 +21,5 @@ class
 		[areDirectlyConnected2]areDirectlyConnected("A","C",netValue),
 		[minHeadway] minHeadway("B","C",netValue),
 		[netValueNotWF] isWellformed(netValueNotWF),
-		[netValue] minHeadway("B","C",netValue)
+		[netValue] minHeadway("B","D",netValue)
 end
