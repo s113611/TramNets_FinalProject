@@ -26,7 +26,6 @@ class
     	let
     		(capA,connectA) = Net(SID),
     		(capB,connectB) = Net(SID2)
-    		
     	in
     		let
     			newConnectA = connectA union {(SID,SID2,(Cap,DTime,HWay))},
@@ -48,9 +47,9 @@ class
    			(capA,connectA) = Net(SID),
    			(capB,connectB) = Net(SID2)
    		in
-   			exists connectInfo: ConnectionInformation :- (SID,SID2,connectInfo) isin connectA /\ (SID,SID2,connectInfo) isin connectB 
+   			(exists (SID,SID2,connectInfo): Connection :- (SID,SID2,connectInfo) isin connectA) /\
+   				(exists (SID,SID2,connectInfo1): Connection :- (SID,SID2,connectInfo1) isin connectB)
    		end,
-
     -- get minimum head way between two connected stops        
    	minHeadway : StopId >< StopId >< Net -~-> Headway
     minHeadway(SID,SID2,Net) is 
@@ -59,9 +58,15 @@ class
     		(capB,connectB) = Net(SID2)
     	in
     		if(areDirectlyConnected(SID,SID2,Net)) then
-    			exists HWay,Cap,DTime : Nat :- (SID,SID2,(Cap,DTime,HWay)) isin connectA /\ (SID,SID2,(Cap,DTime,HWay)) isin connectB
+    			let
+    				(SID,SID2,(Cap,DTime,HWay)) = hd connectA
+    			in
+    				if(exists (SID,SID2,(Cap,DTime,HWay)): Connection :- (SID,SID2,(Cap,DTime,HWay)) isin connectB) then
+    				HWay
+    				else 0 end
+    			end
     		else
-    			exists HWay1,HWay2,SID3,Cap,DTime : Nat :- (SID,SID3,(Cap,DTime,HWay1)) isin connectA /\ (SID3,SID2,(Cap,DTime,HWay2)) isin connectB
+    			0
     		end
     	end
 
@@ -76,8 +81,20 @@ class
     -- get the capacity of a stop 
   --  capacity : StopId >< Net -~-> Capacity
   --  ...
-
- -- value /* predicates to check nets */
- --   isWellformed : Net -> Bool
- --   isWellformed(n) is ...
+ value /* predicates to check nets */
+   isWellformed : Net -> Bool
+   isWellformed(n) is n ~= [] /\ 
+   		(all stID1 : StopId :- stID1 isin n => 
+   			(n(stID1) = (0,{}))  --no stop should contain empty connection-list or have a capacity of 0 (defeats the purpose)
+   			/\
+   			(let      -- There should not exists two connections in a connection-list where the stops are identical
+   				(capA,connectA) = n(stID1)
+   			 in
+   				(all (stID2,stID3,connInfo) : Connection :- (stID2,stID3,connInfo) isin connectA => 
+   					~(exists (stID4,stID5,connInfo2) : Connection :- (stID4,stID5,connInfo2) isin connectA /\
+   						 (stID4,stID5,connInfo2) ~= (stID2,stID3,connInfo2) /\ stID2 = stID4 /\ stID3 = stID5))
+   			end))
+ test_case 
+ 	[insertStop]insertStop("1",2,[]),
+ 	[areDirectlyConnected]areDirectlyConnected("1","2",["1" +> (2, {("1","2",(3,10,2))}), "2" +>(3, {("1","2",(3,10,2))})])
 end  
