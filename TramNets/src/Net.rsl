@@ -23,18 +23,19 @@ class
     -- with the given capacity, minimum driving time and minimum headway
     addConnection : StopId >< StopId  >< Headway >< Capacity >< DrivingTime >< Net -> Net
     addConnection(SID, SID2,HWay,Cap,DTime,Net) is 
-    	let
-    		(capA,connectA) = Net(SID),
-    		(capB,connectB) = Net(SID2)
-    	in
+    	if(isIn(SID,Net) /\ isIn(SID2,Net)) then -- Make sure the stops have already exsited.
     		let
-    			newConnectA = connectA union {(SID,SID2,(Cap,DTime,HWay))},
-    			newConnectB = connectB union {(SID,SID2,(Cap,DTime,HWay))}
+    			(capA,connectA) = Net(SID),
+    			(capB,connectB) = Net(SID2)
     		in
-    			Net !! [SID +> (capA,newConnectA)] union
-    			Net !! [SID2 +> (capB,newConnectB)]
+    			let
+    				newConnectA = connectA union {(SID,SID2,(Cap,DTime,HWay))},
+    				newConnectB = connectB union {(SID,SID2,(Cap,DTime,HWay))}
+    			in
+    				Net !! [SID +> (capA,newConnectA)] !! [SID2 +> (capB,newConnectB)]
+    			end
     		end
-    	end
+    	else Net end
     	
   value /* observers */
     -- check whether a stop is in a network     
@@ -69,7 +70,7 @@ class
     		else
     			0
     		end
-    	end
+    	end,
 
     -- get minimum driving time between two connected stops        
    -- minDrivingTime : StopId >< StopId >< Net -~-> DrivingTime
@@ -80,8 +81,13 @@ class
  --   ...,
  
     -- get the capacity of a stop 
-  --  capacity : StopId >< Net -~-> Capacity
-  --  ...
+ 	capacity : StopId >< Net -~-> Capacity
+  	capacity(SID,n) is 
+  		let
+  			(cap,connSet) = n(SID)
+  		in
+  			cap
+  		end
  value /* predicates to check nets */
    isWellformed : Net -> Bool
    isWellformed(n) is n ~= [] /\ 

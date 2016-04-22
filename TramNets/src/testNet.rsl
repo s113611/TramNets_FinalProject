@@ -4,11 +4,13 @@ scheme testNet =
 extend NET with
 class
 	value
-		net : Net = []
+		net : Net = ["1" +> (2, {}), "2" +>(3, {})],
+		netValue: Net = ["1" +> (2, {("1","2",(3,10,2))}), "2" +>(3, {("1","2",(3,10,2))})]
 	test_case
 		--[empty] empty,
-		[insertStop] insertStop("A",2,net),
-		[insertStopB] insertStop("B",3,net),
-		[isWellformed] isWellformed(net),
-		[addConnection] addConnection("A","B",2,3,10,net)
+		[insertStop] insertStop("1",2,net),
+		[insertStopB] insertStop("2",3,net),
+		[isWellformed] isWellformed(netValue),
+		[addConnection] addConnection("1","2",2,3,10,net),
+		[areDirectlyConnected]areDirectlyConnected("1","2",netValue)
 end
