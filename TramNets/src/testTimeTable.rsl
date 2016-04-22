@@ -1,0 +1,40 @@
+TIMETABLE
+scheme testTimeTable = 
+extend TIMETABLE with
+class
+	value
+		net : Net = ["A" +> (2, {}), "B" +>(3, {("A","B",(3,10,2))}), "C" +>(2,{})],
+		netValue: Net = [	"A" +> (2, {("A","B",(3,10,2))}), 
+						 	"B" +> (3, {("A","B",(3,10,2)),("B","C",(3,12,4)),("B","D",(2,7,3))}), 
+						 	"C" +> (2, {("B","C",(3,12,4))}),
+						 	"D" +> (2, {("B","D",(2,7,3))})
+						 	],
+				
+		vaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32).>,
+		vaplan2: Plan = <.("A",0,1),("B",12,14),("C",28,32),("B",12,14).>,
+		vaplan3: Plan = <.("D",0,1),("B",12,14),("A",28,32).>,
+		unVaplan: Plan = <.("A",0,1),("D",12,14),("C",28,32).>,
+		
+		timeTable: TimeTable = ["tram1" +> <.("A",0,1),("B",12,14),("C",28,32),("B",46,48),("A",59,60).>],
+		wrtimeTable: TimeTable = ["tram1" +> <.("A",0,1),("B",12,14),("C",28,32),("D",34,54).>],
+		wholeTimeTable: TimeTable = ["tram1" +> <.("A",0,1),("B",12,14),("C",28,32),("B",46,48),("A",59,60).>, 
+						"tram2"+> <.("D",0,2),("B",11,13),("A",28,32),("B",47,50),("D",58,60).>]
+	test_case
+		--[empty] empty,
+		--check TimeTable	
+		[addTram]addTram("tram1",timeTable),
+		[addStop]addStop("tram1","B",46,48,timeTable),
+		
+		--check plan
+		[isValidPlan]isValidPlan(vaplan,netValue),
+		[isValidPlan1]isValidPlan(unVaplan,netValue),
+		[isValidPlan2]isValidPlan(vaplan2,netValue),
+		[isValidPlan3]isValidPlan(vaplan3,netValue),
+		
+		[getNewPlan]getNewPlan(vaplan,netValue),
+		[getNewPlan1]getNewPlan(getNewPlan(vaplan,netValue),netValue),
+		
+		[isWellformed]isWellformed(timeTable,netValue),
+		[isWellformed1]isWellformed(wrtimeTable,netValue),
+		[isWellformed2]isWellformed(wholeTimeTable,netValue)
+end

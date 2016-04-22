@@ -17,9 +17,22 @@ class
 		[insertStopB] insertStop("B",3,net),
 		[isWellformed] isWellformed(netValue),
 		[addConnection] addConnection("A","B",2,3,10,net),
-		[areDirectlyConnected]areDirectlyConnected("A","B",netValue),
+		
+		[areEqual]areEqual("A","B","B","A"),
+		[areEqual1]areEqual("A","B","A","B"),
+		
+		--check are directly connect
+		[areDirectlyConnected]areDirectlyConnected("D","B",netValue),
+		[areDirectlyConnected1]areDirectlyConnected("B","A",netValue),
 		[areDirectlyConnected2]areDirectlyConnected("A","C",netValue),
-		[minHeadway] minHeadway("B","C",netValue),
+		
+		[minDrivingTime] minDrivingTime("C","B",netValue),
 		[netValueNotWF] isWellformed(netValueNotWF),
-		[netValue] minHeadway("B","D",netValue)
+		[minDrivingTime1] minDrivingTime("B","A",netValue),
+		[minDrivingTime2] minDrivingTime("B","D",netValue),
+		
+		[getConnection]getConnection("C","B",netValue),
+		[getConnection1]getConnection("D","B",netValue),
+		
+		[capacity]capacity("A",netValue)
 end
