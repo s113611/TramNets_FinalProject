@@ -4,6 +4,9 @@ class
   type
     TimeTable = TramId -m-> Plan, -- time tables
     Plan = (StopId >< Time >< Time) -list,
+    -- data type for easily returning a line in a plan
+    SubPlan = (StopId >< Time >< Time),
+    SubPlanPair = (SubPlan >< SubPlan),
     TramId = Text -- tram names
     value /* generators */
       -- the empty timetable
@@ -54,31 +57,77 @@ class
      checkIsAtSameStopAtSameTime: Time >< Time -> Bool
      checkIsAtSameStopAtSameTime(t1,t2) is t1-t2 <= 2 \/ t2-t1 <= 2,
      
-     --checkOneStopForOnePlan: StopId >< Time >< Plan -> Bool
-     --checkOneStopForOnePlan(sid,arrt,p) is
-     	--(all index : Nat :- p(index) in p =>
-     		--let
-     			--(stid,arrTime,departTime) = p(index)
-     	--	in
-     		--	if(stid = sid) then
-     			--	if(checkIsAtSameStopAtSameTime(arrt,arrTime)) then
-     				--	true
-     		--		else false end
-     	--		else false end
-     --		end),
-     		
-     	
-     -- Save for later
-     getNewPlan: Plan >< Net-> Plan
-     getNewPlan(p,n) is
-     	let
-     		newPlan = tl p
-     	in
-     		if(isValidPlan(p,n) /\ len(newPlan) ~= 0) then
-     			newPlan
-     		else p end
-     	end
- 
+     
+	-- Retrieves a list of pairs in the plan
+	retrievePairCombination: Plan >< (SubPlanPair)-list -> (SubPlanPair)-list
+	retrievePairCombination(plan,pairCombo) is
+		 let
+		 	head = hd plan,
+		 	headOfTail = hd tl plan,
+		 	pairCombo = pairCombo ^ <.(head, headOfTail).>,
+		 	plan = tl plan
+		 in	
+		 	if(len plan = 1) then
+		 		pairCombo
+		 	else
+		 		retrievePairCombination(plan,pairCombo)
+		 	end
+		 end
+	pre plan ~=<..>,
+	
+	-- comparing pairs : returns true if they are overlapping time wise
+	arePairConflicting: SubPlanPair >< SubPlanPair >< Net -> Bool
+	arePairConflicting((SubPlan1,SubPlan2),(SubPlan3,SubPlan4),net) is 
+		let
+			(SID1,arr1,dep1) = SubPlan1,
+			(SID2,arr2,dep2) = SubPlan2,
+			(SID3,arr3,dep3) = SubPlan3,
+			(SID4,arr4,dep4) = SubPlan4,
+			drivingTime = minDrivingTime(SID1,SID2,net)
+		in
+			-- if the pair have the same stopId relation
+			(SID1 = SID3) /\ (SID2 = SID4) 
+			/\
+			-- if the times slots overlap
+			((arr2 - arr4 <= drivingTime /\ arr2 - arr4 >= 0)
+				\/
+			(arr4 - arr2 <= drivingTime /\ arr4 - arr2 >= 0))
+		end,
+	
+	-- detectConnectionOverflow
+	detectConnectionOverflow: TimeTable >< Net -> Bool
+	detectConnectionOverflow(timeTable,net) is 
+	let 
+		planSet = rng(timeTable)
+	in
+		(all plan : Plan :- plan isin planSet =>
+			let
+				pairCombinationList = retrievePairCombination(plan,<..>)
+			in
+				(all subPlanPair : SubPlanPair :- subPlanPair isin pairCombinationList =>
+					comparePairWithAllOtherPlans(subPlanPair,plan,timeTable,net)
+				)
+			end
+		)
+	end,
+	
+	-- compare pair with all other plans DOES NOT WORK!!!!!
+	comparePairWithAllOtherPlans: SubPlanPair >< Plan >< TimeTable >< Net -> Bool
+	comparePairWithAllOtherPlans(subPlanPair,plan,timeTable,net) is 
+		let
+			((SID1,arr1,dep1),(SID2,arr2,dep2)) = subPlanPair,
+			capacityOfConnection = connectedCapacity(SID1,SID2,net)
+		in
+			(all plan2 : Plan :- plan2 isin rng(timeTable) /\ plan ~= plan2 =>
+				let
+					pairComboList = retrievePairCombination(plan2,<..>),
+					pairPlanGood = (all subPlanPair2 : SubPlanPair :- subPlanPair2 isin pairComboList => 
+						~arePairConflicting(subPlanPair,subPlanPair2,net))
+				in
+					true
+				end
+			)
+		end
   value /* predicates to check time tables */   
   
   	  -- Do we need to check the capacity of each stop
@@ -98,7 +147,9 @@ class
       				if(isValidPlan(plan,n)) then
       					isWellformed(t !! [trId +> newPlan],n) 
       				else false end
-      			else true end
+      			else true end /\
+      			-- check  capacity for each directions
+      			(true)
       			
       		end)
 end  
