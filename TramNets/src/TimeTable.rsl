@@ -2,8 +2,8 @@ NET
 scheme TIMETABLE = extend NET with
 class
   type
-    TimeTable = TramId -~m-> Plan, -- time tables
-    Plan = (StopId >< Time >< Time)-list,
+    TimeTable = TramId -m-> Plan, -- time tables
+    Plan = (StopId >< Time >< Time) -list,
     TramId = Text -- tram names
     value /* generators */
       -- the empty timetable
@@ -18,10 +18,7 @@ class
       addStop(trid,stid,time1,time2,t) is 
       		let 
     			pla = t(trid),--get current plan with tramId
-    			--lastStop = pla(len(pla)-1),--get the last stop of the plan
-    			--(sid2,arrTime,departTime) = lastStop,
     			addPl = pla ^ <.(stid,time1,time2).> -- add new stop to plan
-    			--do we need to check the time??like compare the arrive time with existed plan
     		in
     			t !! [trid +> addPl] -- update the timetable
     		end
@@ -31,6 +28,7 @@ class
      isIn(tid,t) is tid isin dom t,
 
      -- you can add more observers here
+     -- check whether the plan is vaild for one specific tram
      isValidPlan: Plan >< Net-> Bool
      isValidPlan(plan,n) is 
      	let
@@ -40,10 +38,37 @@ class
       		(sid2,arrTimeB,departTimeB) = secondStop
      	in
      		if(isIn(sid,n) /\ isIn(sid2,n)) then -- check do the stops in the Net
-      				(areDirectlyConnected(sid,sid2,n))
-      				--/\(arrTimeB-departTimeA) > minDrivingTime(sid,sid2,n)
-      			else false end
+     				--check whether the two stops directly connected, 
+      				--and(arriveTime of stop2 - departureTime of stop1) should be larger than the minimum driving time between these two stops.
+      			if (areDirectlyConnected(sid,sid2,n))/\(arrTimeB-departTimeA) > minDrivingTime(sid,sid2,n) then 	
+      			--if the first two stops are valiad, then check the tail of the plan, until only one stop left
+      				if(len(tl plan) >=2) then
+      					isValidPlan(tl plan, n)
+      				else true end
+      		    else false end
+      		else false end
      	end,
+     
+     --compare the arrive time for a stop
+     -- if the period between two arrive times is smaller than 2, then they are at the same stop
+     checkIsAtSameStopAtSameTime: Time >< Time -> Bool
+     checkIsAtSameStopAtSameTime(t1,t2) is t1-t2 <= 2 \/ t2-t1 <= 2,
+     
+     --checkOneStopForOnePlan: StopId >< Time >< Plan -> Bool
+     --checkOneStopForOnePlan(sid,arrt,p) is
+     	--(all index : Nat :- p(index) in p =>
+     		--let
+     			--(stid,arrTime,departTime) = p(index)
+     	--	in
+     		--	if(stid = sid) then
+     			--	if(checkIsAtSameStopAtSameTime(arrt,arrTime)) then
+     				--	true
+     		--		else false end
+     	--		else false end
+     --		end),
+     		
+     	
+     -- Save for later
      getNewPlan: Plan >< Net-> Plan
      getNewPlan(p,n) is
      	let
@@ -74,5 +99,6 @@ class
       					isWellformed(t !! [trId +> newPlan],n) 
       				else false end
       			else true end
+      			
       		end)
 end  
