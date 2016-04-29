@@ -6,34 +6,71 @@ class
 	value
 		net : Net = ["A" +> (2, {}), "B" +>(3, {})],
 		netValue: Net = [	"A" +> (2, {("A","B",(3,10,2))}), 
-						 	"B" +> (3, {("A","B",(3,10,2)),("B","C",(3,12,4)),("B","D",(2,7,3))}), 
+						 	"B" +> (3, {("A","B",(3,10,2)),("B","C",(3,12,4)),("B","D",(2,7,4))}), 
 						 	"C" +> (2, {("B","C",(3,12,4))}),
-						 	"D" +> (2, {("B","D",(2,7,3))})
+						 	"D" +> (2, {("B","D",(2,7,4))})
 						 	],
-		netValueNotWF: Net = ["A" +> (2, {("A","B",(3,10,2)),("A","B",(2,10,2))}), "B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), "C" +> (2, {("B","C",(3,12,4))})]
+		/*A net where stop A references two of the same connections*/
+		netValueNotWF1: Net = ["A" +> (2, {("A","B",(3,10,2)),("A","B",(2,10,2))}), 
+							"B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
+							"C" +> (2, {("B","C",(3,12,4))})],
+							
+		/*A net where stop B have capacity of 0*/
+		netValueNotWF2: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
+							"B" +>(0, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
+							"C" +> (2, {("B","C",(3,12,4))})],
+		/*A net where stop C have a connection description that has capacity 0*/
+		netValueNotWF3: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
+							"B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
+							"C" +> (2, {("B","C",(0,12,4))})]
 	test_case
-		--[empty] empty,
+		[empty] empty,
+		-- inserting stop
 		[insertStop] insertStop("A",2,net),
 		[insertStopB] insertStop("B",3,net),
-		[isWellformed] isWellformed(netValue),
+		
+		-- adding a connectiong
 		[addConnection] addConnection("A","B",2,3,10,net),
 		
+		-- checking whether if two connection definitions are equal 
 		[areEqual]areEqual("A","B","B","A"),
 		[areEqual1]areEqual("A","B","A","B"),
 		
-		--check are directly connect
+		--check are directly connected
 		[areDirectlyConnected]areDirectlyConnected("D","B",netValue),
 		[areDirectlyConnected1]areDirectlyConnected("B","A",netValue),
 		[areDirectlyConnected2]areDirectlyConnected("A","C",netValue),
-
-		[netValueNotWF] isWellformed(netValueNotWF),
+	
+		-- return minimum headway
+		[minHeadway] minHeadway("A","B",netValue),
+		[minHeadway1] minHeadway("B","D",netValue),
+		--if a connection doesn't exist we return 0
+		[minHeadway2] minHeadway("A","D",netValue),
 		
-		[minHeadway]minHeadway("A","B",netValue),
-		[minHeadway1]minHeadway("B","D",netValue),
 		
+		-- return minimum drivingtime
 		[minDrivingTime]minDrivingTime("A","B",netValue),
 		[minDrivingTime1]minDrivingTime("B","D",netValue),
 		[minDrivingTime2]minDrivingTime("C","B",netValue),
+		--if a connection doesn't exist we return 0
+		[minDrivingTime3]minDrivingTime("A","D",netValue),
 		
-		[capacity]capacity("A",netValue)
+		-- return capacity of a connection
+		[connectedCapacity] connectedCapacity("A","B",netValue),
+		[connectedCapacity1] connectedCapacity("B","D",netValue),
+		[connectedCapacity2] connectedCapacity("C","B",netValue),
+		--if a connection doesn't exist we return 0
+		[connectedCapacity3] connectedCapacity("A","D",netValue),
+		
+		-- return capacity of a stop
+		[capacity] capacity("A",netValue),
+		[capacity1] capacity("B",netValue),
+		--if the stop doesn't exist the precondition catches the error
+		[capacity2] capacity("F",netValue),
+	
+		-- checking different cases of isWellFormed
+		[isWellformed] isWellformed(netValue),
+		[netValueNotWF]  isWellformed(netValueNotWF1),
+		[netValueNotWF2] isWellformed(netValueNotWF2),
+		[netValueNotWF3] isWellformed(netValueNotWF3)
 end

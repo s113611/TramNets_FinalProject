@@ -119,19 +119,31 @@ class
   		in
   			cap
   		end
+  	pre isIn(SID,n)
   		
  value /* predicates to check nets */
    isWellformed : Net -> Bool
-   isWellformed(n) is n ~= [] /\ -- we check that the map is not empty
+   isWellformed(n) is
+   			-- we check that the map is not empty
+   			n ~= [] /\ 
    			(all SID : StopId :- SID isin n => 
-   				(n(SID) ~= (0,{})) --no stop should contain empty connection-list or have a capacity of 0 (defeats the purpose)
-   			/\
-   			(let  -- There should not exists two connections in a connection-list where the stops are identical
-   				(capA,connectA) = n(SID)
-   			 in
-   				(all (sid1,sid2,connInfo) : Connection :- (sid1,sid2,connInfo) isin connectA => 
-   					(all (sid3,sid4,connInfo2) : Connection :- (sid3,sid4,connInfo2) isin connectA /\
-   						 (sid3,sid4,connInfo2) ~= (sid1,sid2,connInfo) => ~areEqual(sid1,sid2,sid3,sid4)))
-   			end)
+	   			(let  
+	   				(capA,connectA) = n(SID)
+	   			 in
+	   				(all (sid1,sid2,connInfo) : Connection :- (sid1,sid2,connInfo) isin connectA => 
+	   					-- There should not exists two connections in a connection-list where the stops are identical
+	   					(all (sid3,sid4,connInfo2) : Connection :- (sid3,sid4,connInfo2) isin connectA /\
+	   						 (sid3,sid4,connInfo2) ~= (sid1,sid2,connInfo) => ~areEqual(sid1,sid2,sid3,sid4)) 
+	   					/\
+	   				 	-- There should not exist a connection info where the capacity is 0
+	   					(let 
+	   						(Cap,DrivingT,Headw) = connInfo 
+	   					in
+	   						Cap ~= 0
+	   					end)
+	   				)
+	   				--no stop should contain empty connection-list or have a capacity of 0 (defeats the purpose) 
+	   				/\ (capA ~= 0 /\ connectA ~= {})		
+	   			end)
    			)
 end  
