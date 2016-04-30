@@ -15,6 +15,21 @@ class
 		vaplan3: Plan = <.("D",0,1),("B",12,14),("A",28,32).>,
 		unVaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32),("A",28,32).>,
 		
+		wholePlanSet: Plan-set = {<.	("A",0,1),
+							("B",12,14),
+							("C",28,32),
+							("B",46,48),
+							("A",59,60)
+							.>,<.	("D",0,2),
+							("B",11,13),
+							("A",28,32),
+							("B",47,50),
+							("D",58,60).>,<.("A",1,2),
+							("B",13,15),
+							("C",29,33).>,<.("A",1,2),
+							("B",9,12),
+							("C",29,33).>},
+		
 		T1Plan: Plan = <.	("A",1,2),
 							("B",13,15),
 							("C",29,33).>,
@@ -30,6 +45,11 @@ class
 		T4Plan: Plan = <.	("A",3,5),
 							("B",15,17),
 							("C",31,35).>,
+		T5Plan: Plan = <.	("D",0,2),
+							("B",11,13),
+							("A",28,32),
+							("B",47,50),
+							("D",58,60).>,
 		
 		TimeTableOverlapping: 
 					TimeTable = ["T1" +> T1Plan, 
@@ -59,7 +79,38 @@ class
 													("B",11,13),
 													("A",28,32),
 													("B",47,50),
-													("D",58,60).>]
+													("D",58,60).>,
+									"tram3"+> <.	("D",0,2),
+													("B",12,13),
+													("A",28,32),
+													("B",47,50),
+													("D",58,60).>],
+		-- B stop has 4 trams at the same time
+		wholeOverCapacityTimeTable: TimeTable = ["tram1" +> <.	("A",0,1),
+													("B",12,14),
+													("C",28,32),
+													("B",46,48),
+													("A",59,60).>, 
+									"tram2"+> <.	("D",0,2),
+													("B",11,13),
+													("A",28,32),
+													("B",47,50),
+													("D",58,60).>,
+									"tram3"+> <.	("D",0,2),
+													("B",12,13),
+													("A",28,32),
+													("B",47,50),
+													("D",58,60).>,
+									"tram4"+> <.	("A",0,1),
+													("B",12,14),
+													("C",28,32),
+													("B",46,48),
+													("D",59,60).>,
+									"tram6"+> <.	("A",0,4),
+													("B",15,17),
+													("C",29,31),
+													("B",46,48),
+													("D",59,60).>]
 													
 	test_case
 		--[empty] empty,
@@ -78,12 +129,26 @@ class
 		--[timeCompare1]timeCompare(12,9,2),
 		--[isValidPlan3]isValidPlan(vaplan3,netValue)
 		
-		--[getNewPlan]getNewPlan(vaplan,netValue),
+		[getAllObjects]getAllObjects(wholeTimeTable),
+		[getAllObjects1]getAllObjects(wholeOverCapacityTimeTable),
 		--[getNewPlan1]getNewPlan(getNewPlan(vaplan,netValue),netValue),
 		
+		[checkIsAtSameStopAtSameTime]checkIsAtSameStopAtSameTime(12,12),
+		[compareSubPlanTime]compareSubPlanTime(("B",11,14), {("B",12,14),("B",12,13),("B",45,53),("B",10,13)},0),	
+		
+		[compareOneSubWithOnePlan]compareOneSubWithOnePlan(("B",11,14), T2Plan),
+		[compareOneSubWithAllPlans]compareOneSubWithAllPlans(("B",11,14),wholePlanSet,0),
+		[compareOneSubWithTimeTable]compareOneSubWithTimeTable(("B",11,14),wholeTimeTable,0),
+		
+		[checkStopCapacity]checkStopCapacity(vaplan,wholeTimeTable,netValue),
+		[checkStopCapacity1]checkStopCapacity(vaplan,wrtimeTable,netValue),
+		
+		[checkAllStopsCapacities]checkAllStopsCapacities("B",wholeOverCapacityTimeTable,netValue),
+		[checkAllStopsCapacities1]checkAllStopsCapacities("B",wholeTimeTable,netValue),
+		
 		[isWellformed]isWellformed(timeTable,netValue),
-		[isWellformed1]isWellformed(wrtimeTable,netValue),
-		--[isWellformed2]isWellformed(wholeTimeTable,netValue)
+		[isWellformed1]isWellformed(wholeOverCapacityTimeTable,netValue),
+		[isWellformed2]isWellformed(wholeTimeTable,netValue),
 		
 		[retrievePairCombination1] retrievePairCombination(T1Plan,<..>),
 		[retrievePairCombination2] retrievePairCombination(T2Plan,<..>),
