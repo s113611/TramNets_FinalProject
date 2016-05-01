@@ -29,7 +29,7 @@ class
 							("C",29,33).>,<.("A",1,2),
 							("B",9,12),
 							("C",29,33).>},
-		
+							
 		T1Plan: Plan = <.	("A",1,2),
 							("B",13,15),
 							("C",29,33).>,
@@ -50,7 +50,9 @@ class
 							("A",28,32),
 							("B",47,50),
 							("D",58,60).>,
-		
+							
+		wholePlanSetWrong: Plan-set = {T1Plan,T2Plan,T3Plan,T4Plan,T5Plan},	
+	
 		TimeTableOverlapping: 
 					TimeTable = ["T1" +> T1Plan, 
 								"T2" +> T2Plan,
@@ -163,6 +165,11 @@ class
 							
 		[detectConnectionOverflowOK1] detectConnectionOverflow(wholeTimeTable,netValue),
 		[detectConnectionOverflow2OK2] detectConnectionOverflow(TimeTableOverlapOK,netValue),
-		[detectConnectionOverflow3] detectConnectionOverflow(TimeTableOverlapping,netValue)
+		[detectConnectionOverflow3] detectConnectionOverflow(TimeTableOverlapping,netValue),
+		
+		[comparePairWithOnePlan1] comparePairWithOnePlan((("A",0,1 ),("B",10,14)),T3Plan,netValue),
+		[comparePairWithOnePlan2] comparePairWithOnePlan((("A",0,1 ),("B",10,14)),T5Plan,netValue),
+		[comparePairWithAllOtherPlans1] comparePairWithAllOtherPlans((("A",0,1 ),("B",10,14)),
+							T1Plan,wholePlanSetWrong,netValue,0)
 		
 end

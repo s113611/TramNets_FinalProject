@@ -165,7 +165,10 @@ class
      	end,
      
     -----------------------------------------Check connections capacity functions part------------------------------ 
-	-- Retrieves a list of pairs in the plan
+	-- The overall idea is : For each subPlan-pair we compare all other subplanPairs in all other plans. 
+	-- for each match, we increment a counter and at last we compare with the max capacity of the connection
+	
+	-- Retrieves a list of pairs in the plan e.g. ((("A",0,1 ),("B",10,14)))
 	retrievePairCombination: Plan >< (SubPlanPair)-list -> (SubPlanPair)-list
 	retrievePairCombination(plan,pairCombo) is
 		 let
@@ -182,7 +185,7 @@ class
 		 end
 	pre plan ~=<..>,
 	
-	-- comparing pairs : returns true if they are overlapping time wise
+	-- comparing pairs : Returns true if they are overlapping time wise
 	arePairConflicting: SubPlanPair >< SubPlanPair >< Net -> Bool
 	arePairConflicting((SubPlan1,SubPlan2),(SubPlan3,SubPlan4),net) is 
 		let
@@ -201,7 +204,7 @@ class
 			(arr4 - arr2 <= drivingTime /\ arr4 - arr2 >= 0))
 		end,
 	
-	-- detectConnectionOverflow
+	-- DetectConnectionOverflow (main function)
 	detectConnectionOverflow: TimeTable >< Net -> Bool
 	detectConnectionOverflow(timeTable,net) is 
 	let 
@@ -212,47 +215,69 @@ class
 				pairCombinationList = retrievePairCombination(plan,<..>)
 			in
 				(all subPlanPair : SubPlanPair :- subPlanPair isin pairCombinationList =>
-					comparePairWithAllOtherPlans(subPlanPair,plan,timeTable,net)
-				)
-			end
-		)
+					let
+						((SID1,arr1,dep1),(SID2,arr2,dep2)) = subPlanPair,
+						capacityOfConnection = connectedCapacity(SID1,SID2,net)
+					in
+						if(comparePairWithAllOtherPlans(subPlanPair,plan,planSet,net,0) > capacityOfConnection) then
+							false
+						else
+							true
+						end
+					end)
+			end)
 	end,
 	
-	-- compare pair with all other plans DOES NOT WORK!!!!!
-	comparePairWithAllOtherPlans: SubPlanPair >< Plan >< TimeTable >< Net -> Bool
-	comparePairWithAllOtherPlans(subPlanPair,plan,timeTable,net) is 
+	-- We compare a subplanpair with all other plans.
+	comparePairWithAllOtherPlans: SubPlanPair >< Plan >< Plan-set >< Net >< Nat -> Nat
+	comparePairWithAllOtherPlans(subPlanPair,plan,planSet,net,counter) is 
+	if(card planSet >= 1) then
 		let
-			((SID1,arr1,dep1),(SID2,arr2,dep2)) = subPlanPair,
-			capacityOfConnection = connectedCapacity(SID1,SID2,net)
+			currentPlan = hd planSet
 		in
-			(all plan2 : Plan :- plan2 isin rng(timeTable) /\ plan ~= plan2 =>
-				let
-					pairComboList = retrievePairCombination(plan2,<..>),
-					pairPlanGood = (all subPlanPair2 : SubPlanPair :- subPlanPair2 isin pairComboList => 
-						~arePairConflicting(subPlanPair,subPlanPair2,net))
-				in
-					true
-				end
-			)
+			if(currentPlan = plan \/ comparePairWithOnePlan(subPlanPair,currentPlan,net)) then
+				comparePairWithAllOtherPlans(subPlanPair,plan,planSet \ {currentPlan},net,counter+1)
+			else
+				comparePairWithAllOtherPlans(subPlanPair,plan,planSet \ {currentPlan},net,counter)
+			end
 		end
+	else
+		counter
+	end
+	pre isValidPlan(plan,net),	
+	
+	-- We compare one subplanpair with one single plan	
+	comparePairWithOnePlan: SubPlanPair >< Plan >< Net -> Bool
+	comparePairWithOnePlan(subPlanPair,plan,net) is 
+		let 
+			pairComboList = retrievePairCombination(plan,<..>),
+			pairPlanConflicting = (exists subPlanPair2 : SubPlanPair :- subPlanPair2 isin pairComboList /\ 
+						arePairConflicting(subPlanPair,subPlanPair2,net))
+		in
+			pairPlanConflicting
+		end
+	
   value /* predicates to check time tables */   
-  
-  	  -- Do we need to check the capacity of each stop
       isWellformed : TimeTable >< Net -> Bool
       isWellformed(t, n) is 
-      	(all trId : TramId :- trId isin dom t=>
-      		let
-      			plan = t(trId), -- get plan of the tram
-      			newPlan = tl plan
-      		in
-      			if(len(plan) ~= 1) then
-      				if(isValidPlan(plan,n)) then
-      					isWellformed(t !! [trId +> newPlan],n) 
-      				else false end
-      			else true end /\
-      			-- check  capacity for each directions
-      			(true) /\ 
+     	-- This should be done so it is much easier to read! Please move to one function :) 
+     	--No recursion in isWellFormed
+      	--(all trId : TramId :- trId isin dom t=>
+      	--	let
+      	--		plan = t(trId), -- get plan of the tram
+      	--		newPlan = tl plan
+      	--	in
+      	--		if(len(plan) ~= 1) then
+      	--			if(isValidPlan(plan,n)) then
+      	--				isWellformed(t !! [trId +> newPlan],n) 
+      	--			else false end
+      	--		else true end /\
       			-- check capacity for each stop
-      		 	checkAllStopsCapacities(trId,t,n)
-      		end)
+      			
+      	-- I think maybe this should take a TimeTable as parameter ? 
+      	--	 	checkAllStopsCapacities(trId,t,n)
+      	--	end) 
+      	--	/\
+      			-- check  capacity for each directions
+      			detectConnectionOverflow(t,n)
 end  
