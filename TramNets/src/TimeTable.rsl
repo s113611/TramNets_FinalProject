@@ -3,7 +3,7 @@ scheme TIMETABLE = extend NET with
 class
   type
     TimeTable = TramId -m-> Plan, -- time tables
-    Plan = (StopId >< Time >< Time) -list,
+    Plan = (SubPlan) -list,
     -- data type for easily returning a line in a plan
     SubPlan = (StopId >< Time >< Time),
     SubPlanPair = (SubPlan >< SubPlan),
@@ -32,6 +32,7 @@ class
      isIn : TramId >< TimeTable -> Bool
      isIn(tid,t) is tid isin dom t,
 
+	------------------------Check valid plan part--------------------------------------
      -- you can add more observers here
      -- check whether the plan is vaild for one specific tram
      isValidPlan: Plan >< Net-> Bool
@@ -45,7 +46,7 @@ class
      		if(isIn(sid,n) /\ isIn(sid2,n)) then -- check do the stops in the Net
      				--check whether the two stops directly connected, 
       				--and(arriveTime of stop2 - departureTime of stop1) should be larger than the minimum driving time between these two stops.
-      			if (areDirectlyConnected(sid,sid2,n))/\(arrTimeB-departTimeA) > minDrivingTime(sid,sid2,n) then 	
+      			if (areDirectlyConnected(sid,sid2,n))/\(arrTimeB-departTimeA) >= minDrivingTime(sid,sid2,n) then 	
       			--if the first two stops are valiad, then check the tail of the plan, until only one stop left
       				if(len(tl plan) >=2) then
       					isValidPlan(tl plan, n)
@@ -53,7 +54,31 @@ class
       		    else false end
       		else false end
      	end,
-     --------------------------------------Check Stop capacity functions part--------------------------------------
+     
+     -- check whether a plan-set is a valid plan set	
+     checkIsValidPlanSet: Plan-set >< Net -> Bool
+     checkIsValidPlanSet(pSet,n) is
+     	let
+     		first = hd pSet,
+     		newSet = pSet\{first}
+     	in
+     		if(isValidPlan(first,n)) then
+     			if(card(newSet)>0) then
+     					checkIsValidPlanSet(newSet,n)
+     			else true end
+     		else false end
+     	end,
+     	
+     -- check the validation of all the plans in timetable[Main function]
+     checkIsValidPlanForEachTram: TimeTable >< Net -> Bool
+     checkIsValidPlanForEachTram(t,n) is
+         let
+         	planSet = rng(t)
+         in
+         	checkIsValidPlanSet(planSet,n)
+         end, 
+         
+------------------------Check Stop capacity functions part--------------------------------------
      --compare the arrive time for a stop
      -- if the period between two arrive times is smaller than 2, then they are at the same stop
      checkIsAtSameStopAtSameTime: Time >< Time -> Bool
@@ -74,11 +99,10 @@ class
 		in
 			if(checkIsAtSameStopAtSameTime(arrTime,arrTime1)) then
 				let
-					count = count +1,
-					newSet = pSet\{(sid1,arrTime1,departTime1)}
+					count = count +1
 				in
-					if(card(newSet) >=1) then 
-						compareSubPlanTime(subP,newSet,count)
+					if(card(pSet\{(sid1,arrTime1,departTime1)}) >=1) then 
+						compareSubPlanTime(subP,pSet\{(sid1,arrTime1,departTime1)},count)
 					else count end
 				end
 			else
@@ -96,7 +120,9 @@ class
   			subPlanSet = getSameStopsFromOnePlan(sid,plan),
   			count = 0
   		in
-  			compareSubPlanTime(subP,subPlanSet,count)
+  			if(card(subPlanSet) > 1) then
+  				compareSubPlanTime(subP,subPlanSet,count)
+  			else count end
   		end,
   	
   	--compare one stop with whole timetable
@@ -106,9 +132,12 @@ class
   			let
   				--planSet = getAllObjects(t),
   				plan = hd planSet,
-  				count = compareOneSubWithOnePlan(subP,plan) + count
+  				count = compareOneSubWithOnePlan(subP,plan) + count,
+  				newPlan = planSet\{plan}
   			in
-  				compareOneSubWithAllPlans(subP,planSet\{plan},count)
+  				if(card(newPlan) >=1) then
+  					compareOneSubWithAllPlans(subP,newPlan,count)
+  				else count end
   			end
   		else count end,
   	
@@ -116,7 +145,7 @@ class
   	compareOneSubWithTimeTable: SubPlan >< TimeTable >< Count -> Count
   	compareOneSubWithTimeTable(subP,t,count) is
   		let
-  			planSet = getAllObjects(t)
+  			planSet = rng(t)
   		in
   			compareOneSubWithAllPlans(subP,planSet,count)
   		end,
@@ -124,45 +153,30 @@ class
   	-- compare one tram plan with all the other tram's plan
   	checkStopCapacity: Plan >< TimeTable >< Net -> Bool
   	checkStopCapacity(plan,t,n) is
-  		if(len(plan)>1) then
-  			let
+  		if(len(plan) ~= 0) then
+			let
   				firstSubplan = hd plan,
+  				nextplan = tl plan,
   				(sid,arrT,departT) = firstSubplan,
   				capa = capacity(sid,n)
   			in
-  				if(compareOneSubWithTimeTable(firstSubplan,t,0) <= capa) then
-  					checkStopCapacity(tl plan, t, n)
-  				else false end
+ 				if(compareOneSubWithTimeTable(firstSubplan,t,0) <= capa) then
+ 					checkStopCapacity(nextplan, t, n)
+ 				else false end
   			end
   		else true end,
   		
-  	-- check all the stops capacities
+  	-- check all the stops capacities[Main function]
   	-- Idea is : get one random plan of tram from timetable, compare it with all the other tram plans
-  	------------------------DOES NOT WORK FOR "WHOLE TIMETABLE" FOR NOW--------------------------------
-  	checkAllStopsCapacities: TramId >< TimeTable >< Net -> Bool
-  	checkAllStopsCapacities(tid,t,n) is
+  	checkAllStopsCapacities: TimeTable >< Net -> Bool
+  	checkAllStopsCapacities(t,n) is
   		let
-  			allPlans = getAllObjects(t),
-  			oneplan = hd allPlans
+  			allPlans = rng(t)
   		in
-  			checkStopCapacity(oneplan,t,n)
+  			(all plan: Plan:- plan isin allPlans =>
+  				checkStopCapacity(plan,t,n)
+  			)
   		end,
-	 
-	 -- get All the value in a map,return a set of plans
-	 getAllObjects:TimeTable -> Plan-set
-	 getAllObjects(t) is
-		rng(t),
-		
-     -- Save for later
-     getNewPlan: Plan >< Net-> Plan
-     getNewPlan(p,n) is
-     	let
-     		newPlan = tl p
-     	in
-     		if(isValidPlan(p,n) /\ len(newPlan) ~= 0) then
-     			newPlan
-     		else p end
-     	end,
      
     -----------------------------------------Check connections capacity functions part------------------------------ 
 	-- The overall idea is : For each subPlan-pair we compare all other subplanPairs in all other plans. 
@@ -259,25 +273,11 @@ class
 	
   value /* predicates to check time tables */   
       isWellformed : TimeTable >< Net -> Bool
-      isWellformed(t, n) is 
-     	-- This should be done so it is much easier to read! Please move to one function :) 
-     	--No recursion in isWellFormed
-      	--(all trId : TramId :- trId isin dom t=>
-      	--	let
-      	--		plan = t(trId), -- get plan of the tram
-      	--		newPlan = tl plan
-      	--	in
-      	--		if(len(plan) ~= 1) then
-      	--			if(isValidPlan(plan,n)) then
-      	--				isWellformed(t !! [trId +> newPlan],n) 
-      	--			else false end
-      	--		else true end /\
-      			-- check capacity for each stop
-      			
-      	-- I think maybe this should take a TimeTable as parameter ? 
-      	--	 	checkAllStopsCapacities(trId,t,n)
-      	--	end) 
-      	--	/\
-      			-- check  capacity for each directions
-      			detectConnectionOverflow(t,n)
+      isWellformed(t, n) is
+        -- check is it valid plan for each tram
+      	checkIsValidPlanForEachTram(t,n) /\ 
+      		--check capacity of all stops
+      		checkAllStopsCapacities(t,n) /\
+      		--check capacity of each connection
+      		 detectConnectionOverflow(t,n)
 end  

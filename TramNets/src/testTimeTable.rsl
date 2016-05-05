@@ -10,26 +10,11 @@ class
 						 	"D" +> (2, {("B","D",(2,7,3))})
 						 	],
 				
-		vaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32).>,
-		unvaplan2: Plan = <.("A",0,1),("B",12,14),("C",20,32).>,
+		vaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32),("B",45,47).>,
+		unvaplan2: Plan = <.("A",0,1),("B",12,14),("C",20,32),("D",45,47).>,
 		vaplan3: Plan = <.("D",0,1),("B",12,14),("A",28,32).>,
 		unVaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32),("A",28,32).>,
 		
-		wholePlanSet: Plan-set = {<.	("A",0,1),
-							("B",12,14),
-							("C",28,32),
-							("B",46,48),
-							("A",59,60)
-							.>,<.	("D",0,2),
-							("B",11,13),
-							("A",28,32),
-							("B",47,50),
-							("D",58,60).>,<.("A",1,2),
-							("B",13,15),
-							("C",29,33).>,<.("A",1,2),
-							("B",9,12),
-							("C",29,33).>},
-							
 		T1Plan: Plan = <.	("A",1,2),
 							("B",13,15),
 							("C",29,33).>,
@@ -51,6 +36,7 @@ class
 							("B",47,50),
 							("D",58,60).>,
 							
+		wholePlanSet: Plan-set = {T1Plan,T2Plan,T3Plan},	
 		wholePlanSetWrong: Plan-set = {T1Plan,T2Plan,T3Plan,T4Plan,T5Plan},	
 	
 		TimeTableOverlapping: 
@@ -125,32 +111,25 @@ class
 		--check plan
 		[isValidPlan]isValidPlan(unVaplan,netValue),
 		[isValidPlan1]isValidPlan(vaplan,netValue),
-		[isValidPlan2]isValidPlan(unvaplan2,netValue),
-		
-		--[timeCompare]timeCompare(11,13,3),
-		--[timeCompare1]timeCompare(12,9,2),
-		--[isValidPlan3]isValidPlan(vaplan3,netValue)
-		
-		[getAllObjects]getAllObjects(wholeTimeTable),
-		[getAllObjects1]getAllObjects(wholeOverCapacityTimeTable),
-		--[getNewPlan1]getNewPlan(getNewPlan(vaplan,netValue),netValue),
+		[isValidPlan2]isValidPlan(T5Plan,netValue),
+		--[checkIsValidPlanForEachTram]checkIsValidPlanForEachTram(wholePlanSet,netValue),
+		--[checkIsValidPlanForEachTram11]checkIsValidPlanForEachTram11(wrtimeTable,netValue),
 		
 		[checkIsAtSameStopAtSameTime]checkIsAtSameStopAtSameTime(12,12),
 		[compareSubPlanTime]compareSubPlanTime(("B",11,14), {("B",12,14),("B",12,13),("B",45,53),("B",10,13)},0),	
 		
 		[compareOneSubWithOnePlan]compareOneSubWithOnePlan(("B",11,14), T2Plan),
-		[compareOneSubWithAllPlans]compareOneSubWithAllPlans(("B",11,14),wholePlanSet,0),
+	--	[compareOneSubWithAllPlans]compareOneSubWithAllPlans(("B",11,14),wholePlanSet,0),
 		[compareOneSubWithTimeTable]compareOneSubWithTimeTable(("B",11,14),wholeTimeTable,0),
 		
 		[checkStopCapacity]checkStopCapacity(vaplan,wholeTimeTable,netValue),
 		[checkStopCapacity1]checkStopCapacity(vaplan,wrtimeTable,netValue),
 		
-		[checkAllStopsCapacities]checkAllStopsCapacities("B",wholeOverCapacityTimeTable,netValue),
-		[checkAllStopsCapacities1]checkAllStopsCapacities("B",wholeTimeTable,netValue),
-		
-		[isWellformed]isWellformed(timeTable,netValue),
+		[isWellformed]isWellformed(wrtimeTable,netValue),
 		[isWellformed1]isWellformed(wholeOverCapacityTimeTable,netValue),
 		[isWellformed2]isWellformed(wholeTimeTable,netValue),
+		
+		--[checkIsValidPlanForEachTram]checkIsValidPlanForEachTram(wholeTimeTable,netValue),
 		
 		[retrievePairCombination1] retrievePairCombination(T1Plan,<..>),
 		[retrievePairCombination2] retrievePairCombination(T2Plan,<..>),
