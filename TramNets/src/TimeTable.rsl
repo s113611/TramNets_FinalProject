@@ -196,8 +196,7 @@ class
 		 	else
 		 		retrievePairCombination(plan,pairCombo)
 		 	end
-		 end
-	pre plan ~=<..>,
+		 end,
 	
 	-- comparing pairs : Returns true if they are overlapping time wise
 	arePairConflicting: SubPlanPair >< SubPlanPair >< Net -> Bool
@@ -215,7 +214,7 @@ class
 			-- if the times slots overlap
 			((arr2 - arr4 <= drivingTime /\ arr2 - arr4 >= 0)
 				\/
-			(arr4 - arr2 <= drivingTime /\ arr4 - arr2 >= 0))
+			(arr4 - arr2 >= drivingTime /\ arr4 - arr2 <= 0))
 		end,
 	
 	-- DetectConnectionOverflow (main function)
@@ -233,7 +232,8 @@ class
 						((SID1,arr1,dep1),(SID2,arr2,dep2)) = subPlanPair,
 						capacityOfConnection = connectedCapacity(SID1,SID2,net)
 					in
-						if(comparePairWithAllOtherPlans(subPlanPair,plan,planSet,net,0) > capacityOfConnection) then
+						if(comparePairWithAllOtherPlans(subPlanPair,plan,planSet,net,0) > capacityOfConnection)
+						\/ comparePairWithAllOtherPlansHeadWay(subPlanPair,plan,planSet,net) then
 							false
 						else
 							true
@@ -257,8 +257,7 @@ class
 		end
 	else
 		counter
-	end
-	pre isValidPlan(plan,net),	
+	end,
 	
 	-- We compare one subplanpair with one single plan	
 	comparePairWithOnePlan: SubPlanPair >< Plan >< Net -> Bool
@@ -269,15 +268,57 @@ class
 						arePairConflicting(subPlanPair,subPlanPair2,net))
 		in
 			pairPlanConflicting
-		end
+		end,
+	-----------------------------------------Check that headway is withheld------------------------------------------
+	arePairConflictingHeadway: SubPlanPair >< SubPlanPair >< Net -> Bool
+	arePairConflictingHeadway((SubPlan1,SubPlan2),(SubPlan3,SubPlan4),net) is 
+	let
+		(SID1,arr1,dep1) = SubPlan1,
+		(SID2,arr2,dep2) = SubPlan2,
+		(SID3,arr3,dep3) = SubPlan3,
+		(SID4,arr4,dep4) = SubPlan4,
+		minHeadWay = minHeadway(SID1,SID2,net)
+	in
+		-- if the pair have the same stopId relation
+		(SID1 = SID3) /\ (SID2 = SID4) 
+		/\
+		-- if the time slots overlap (dep)
+		((dep1 - dep3 <= minHeadWay /\ dep1 - dep3 >= 0)
+			\/
+		(dep3 - dep1 <= minHeadWay /\ dep3 - dep1 >= 0))
+		\/
+		-- if the time slots overlap (arr)
+		((arr2 - arr4 <= minHeadWay /\ arr2 - arr4 >= 0)
+			\/
+		(arr4 - arr2 <= minHeadWay /\ arr4 - arr2 >= 0)	
+		)
+	end,
+		
+	-- We compare one subplanpair with one single plan	
+	comparePairWithOnePlanHeadway: SubPlanPair >< Plan >< Net -> Bool
+	comparePairWithOnePlanHeadway(subPlanPair,plan,net) is 
+		let 
+			pairComboList = retrievePairCombination(plan,<..>),
+			pairPlanConflicting = (exists subPlanPair2 : SubPlanPair :- subPlanPair2 isin pairComboList /\ 
+						arePairConflictingHeadway(subPlanPair,subPlanPair2,net))
+		in
+			pairPlanConflicting
+		end,
+		
+	-- We compare a subplanpair with all other plans.
+	comparePairWithAllOtherPlansHeadWay: SubPlanPair >< Plan >< Plan-set >< Net -> Bool
+	comparePairWithAllOtherPlansHeadWay(subPlanPair,plan,planSet,net) is 
+		(exists plan2 : Plan :- plan2 isin planSet /\ plan2 ~= plan /\
+			comparePairWithOnePlanHeadway(subPlanPair,plan2,net))
+
 	
   value /* predicates to check time tables */   
       isWellformed : TimeTable >< Net -> Bool
       isWellformed(t, n) is
-        -- check is it valid plan for each tram
-      	checkIsValidPlanForEachTram(t,n) /\ 
+        	-- check is it valid plan for each tram
+      		checkIsValidPlanForEachTram(t,n) /\ 
       		--check capacity of all stops
       		checkAllStopsCapacities(t,n) /\
-      		--check capacity of each connection
-      		 detectConnectionOverflow(t,n)
+      		--check capacity and headway of each connection
+      		detectConnectionOverflow(t,n)
 end  

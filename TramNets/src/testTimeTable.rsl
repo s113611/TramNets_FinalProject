@@ -38,7 +38,8 @@ class
 							
 		wholePlanSet: Plan-set = {T1Plan,T2Plan,T3Plan},	
 		wholePlanSetWrong: Plan-set = {T1Plan,T2Plan,T3Plan,T4Plan,T5Plan},	
-	
+		wholePlanSetRight : Plan-set = {T3Plan,T4Plan},
+		
 		TimeTableOverlapping: 
 					TimeTable = ["T1" +> T1Plan, 
 								"T2" +> T2Plan,
@@ -149,6 +150,15 @@ class
 		[comparePairWithOnePlan1] comparePairWithOnePlan((("A",0,1 ),("B",10,14)),T3Plan,netValue),
 		[comparePairWithOnePlan2] comparePairWithOnePlan((("A",0,1 ),("B",10,14)),T5Plan,netValue),
 		[comparePairWithAllOtherPlans1] comparePairWithAllOtherPlans((("A",0,1 ),("B",10,14)),
-							T1Plan,wholePlanSetWrong,netValue,0)
+							T1Plan,wholePlanSetWrong,netValue,0),
+							
+		[arePairConflictingHeadway] arePairConflictingHeadway((("A",0,1),("B",10,14)),
+							(("A",1,2),("B",20,15)),netValue),
+		[arePairConflictingHeadway2] arePairConflictingHeadway((("A",0,1),("B",10,14)),
+							(("A",3,4),("B",22,17)),netValue),
+						
+		[comparePairWithOnePlanHeadway] comparePairWithOnePlanHeadway((("A",0,1 ),("B",10,14)),T5Plan,netValue),
+		[comparePairWithAllOtherPlansHeadWay] comparePairWithAllOtherPlansHeadWay((("A",0,1 ),("B",10,14)),
+							T1Plan,wholePlanSetRight,netValue)
 		
 end
