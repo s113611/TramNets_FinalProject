@@ -214,7 +214,7 @@ class
 			-- if the times slots overlap
 			((arr2 - arr4 <= drivingTime /\ arr2 - arr4 >= 0)
 				\/
-			(arr4 - arr2 >= drivingTime /\ arr4 - arr2 <= 0))
+			(arr4 - arr2 <= drivingTime /\ arr4 - arr2 >= 0))
 		end,
 	
 	-- DetectConnectionOverflow (main function)
@@ -232,8 +232,8 @@ class
 						((SID1,arr1,dep1),(SID2,arr2,dep2)) = subPlanPair,
 						capacityOfConnection = connectedCapacity(SID1,SID2,net)
 					in
-						if(comparePairWithAllOtherPlans(subPlanPair,plan,planSet,net,0) > capacityOfConnection)
-						\/ comparePairWithAllOtherPlansHeadWay(subPlanPair,plan,planSet,net) then
+						if(comparePairWithAllOtherPlans(subPlanPair,plan,planSet,net,0) > capacityOfConnection) \/ 
+						comparePairWithAllOtherPlansHeadWay(subPlanPair,plan,planSet,net) then
 							false
 						else
 							true
@@ -280,15 +280,15 @@ class
 		minHeadWay = minHeadway(SID1,SID2,net)
 	in
 		-- if the pair have the same stopId relation
-		(SID1 = SID3) /\ (SID2 = SID4) 
-		/\
+		((SID1 = SID3) /\ (SID2 = SID4)) 
+		/\ 
 		-- if the time slots overlap (dep)
 		((dep1 - dep3 <= minHeadWay /\ dep1 - dep3 >= 0)
 			\/
-		(dep3 - dep1 <= minHeadWay /\ dep3 - dep1 >= 0))
+		(dep3 - dep1 <= minHeadWay /\ dep3 - dep1 >= 0)
 		\/
-		-- if the time slots overlap (arr)
-		((arr2 - arr4 <= minHeadWay /\ arr2 - arr4 >= 0)
+		--if the time slots overlap (arr)
+		(arr2 - arr4 <= minHeadWay /\ arr2 - arr4 >= 0)
 			\/
 		(arr4 - arr2 <= minHeadWay /\ arr4 - arr2 >= 0)	
 		)
