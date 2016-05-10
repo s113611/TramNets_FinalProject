@@ -19,13 +19,20 @@ class
       addTram(trid,t) is t !! [trid +> <..>],
 
       -- add a stop with arrival time and departure time to the plan for a given tram
+      -- if the tram does not exist in the timetable, then return the timetable
       addStop: TramId >< StopId >< Time >< Time >< TimeTable -> TimeTable
       addStop(trid,stid,time1,time2,t) is 
       		let 
-    			pla = t(trid),--get current plan with tramId
-    			addPl = pla ^ <.(stid,time1,time2).> -- add new stop to plan
+      			tramIds = dom t
     		in
-    			t !! [trid +> addPl] -- update the timetable
+    			if(trid isin tramIds) then
+    				let
+    					pla = t(trid),--get current plan with tramId
+    					addPl = pla ^ <.(stid,time1,time2).> -- add new stop to plan
+    				in
+    					t !! [trid +> addPl] -- update the timetable
+    				end
+    			else t end
     		end
   value /* observers */
      -- check whether a tram with a given name exists in a given time table
@@ -70,19 +77,21 @@ class
      	end,
      	
      -- check the validation of all the plans in timetable[Main function]
-     checkIsValidPlanForEachTram: TimeTable >< Net -> Bool
-     checkIsValidPlanForEachTram(t,n) is
+     checkIsValidPlanForWholeTimeTable: TimeTable >< Net -> Bool
+     checkIsValidPlanForWholeTimeTable(t,n) is
          let
          	planSet = rng(t)
          in
          	checkIsValidPlanSet(planSet,n)
          end, 
          
-------------------------Check Stop capacity functions part--------------------------------------
+     ------------------------Check Stop capacity functions part------------------------------------
      --compare the arrive time for a stop
-     -- if the period between two arrive times is smaller than 2, then they are at the same stop
-     checkIsAtSameStopAtSameTime: Time >< Time -> Bool
-     checkIsAtSameStopAtSameTime(t1,t2) is (t1-t2 <= 2 /\ t1-t2 >=0) \/ (t2-t1 <= 2 /\ t2-t1 >=0),
+     -- if the second tram arrive after the first tram and departure before first tram OR
+     -- the second tram departure after the first tram, then they are at the same stop at the same time
+     checkIsAtSameStopAtSameTime: Time >< Time >< Time >< Time -> Bool
+     checkIsAtSameStopAtSameTime(arr1,arr2,depar1,depar2) is 
+     	(arr1 >= arr2 /\ arr1 <= depar2) \/ (arr2 >= arr1 /\ arr2 <= depar1),
      
       --get the same stops information in one plan with the stopId
      getSameStopsFromOnePlan: StopId >< Plan -> SubPlan-set
@@ -97,7 +106,7 @@ class
 			(sid,arrTime,departTime) = subP,
 			(sid1,arrTime1,departTime1) = hd pSet
 		in
-			if(checkIsAtSameStopAtSameTime(arrTime,arrTime1)) then
+			if(checkIsAtSameStopAtSameTime(arrTime,arrTime1,departTime,departTime1)) then
 				let
 					count = count +1
 				in
@@ -316,7 +325,7 @@ class
       isWellformed : TimeTable >< Net -> Bool
       isWellformed(t, n) is
         	-- check is it valid plan for each tram
-      		checkIsValidPlanForEachTram(t,n) /\ 
+      		checkIsValidPlanForWholeTimeTable(t,n) /\ 
       		--check capacity of all stops
       		checkAllStopsCapacities(t,n) /\
       		--check capacity and headway of each connection

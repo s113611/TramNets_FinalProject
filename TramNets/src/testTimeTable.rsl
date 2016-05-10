@@ -9,11 +9,6 @@ class
 						 	"C" +> (2, {("B","C",(3,12,4))}),
 						 	"D" +> (2, {("B","D",(2,7,3))})
 						 	],
-				
-		vaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32),("B",45,47).>,
-		unvaplan2: Plan = <.("A",0,1),("B",12,14),("C",20,32),("D",45,47).>,
-		vaplan3: Plan = <.("D",0,1),("B",12,14),("A",28,32).>,
-		unVaplan: Plan = <.("A",0,1),("B",12,14),("C",28,32),("A",28,32).>,
 		
 		T1Plan: Plan = <.	("A",1,2),
 							("B",13,15),
@@ -35,9 +30,26 @@ class
 							("A",28,32),
 							("B",47,50),
 							("D",58,60).>,
+		-- InValid plan because of driving time less than requirement
+		T6PlanInValid: Plan = <.("D",0,2),
+							("B",14,17),
+							("A",25,28),
+							("B",40,42),
+							("D",53,60).>,
+		T7Plan: Plan = <.	("D",0,2),
+							("B",12,13),
+							("C",28,32),
+							("B",47,50),
+							("D",58,60).>,
+		T8Plan: Plan = <.	("D",0,2),
+							("B",11,14),
+							("D",28,32),
+							("B",47,50),
+							("D",58,60).>,
 							
 		wholePlanSetWrong: Plan-set = {T1Plan,T2Plan,T3Plan,T4Plan,T5Plan},	
 		wholePlanSetRight : Plan-set = {T1Plan,T5Plan},
+		InvalidPlanSet : Plan-set = {T1Plan,T6PlanInValid},
 		
 		TimeTableConnOverlap: 
 					TimeTable = ["T1" +> T1Plan, 
@@ -49,86 +61,82 @@ class
 								"T2" +> T2Plan,
 								"T3" +> T3Plan],
 		
-		timeTable: TimeTable = ["tram1" +> <.	("A",0,1),
-												("B",12,14),
-												("C",28,32),
-												("B",46,48),
-												("A",59,60).>],
-		wrtimeTable: TimeTable = ["tram1" +> <.	("A",0,1),
-												("B",12,14),
-												("C",28,32),
-												("D",34,54).>],
-		wholeTimeTable: TimeTable = ["tram1" +> <.	("A",0,1),
-													("B",12,14),
-													("C",28,32),
-													("B",46,48),
-													("A",59,60).>, 
-									"tram2"+> <.	("D",0,2),
-													("B",11,13), 
-													("A",28,32),
-													("B",47,50),
-													("D",58,60).>],
-		-- B stop has 4 trams at the same time
-		wholeOverCapacityTimeTable: TimeTable = ["tram1" +> <.	("A",0,1),
-													("B",12,14),
-													("C",28,32),
-													("B",46,48),
-													("A",59,60).>, 
-									"tram2"+> <.	("D",0,2),
-													("B",11,13),
-													("A",28,32),
-													("B",47,50),
-													("D",58,60).>,
-									"tram3"+> <.	("D",0,2),
-													("B",12,13),
-													("A",28,32),
-													("B",47,50),
-													("D",58,60).>,
-									"tram4"+> <.	("A",0,1),
-													("B",12,14),
-													("C",28,32),
-													("B",46,48),
-													("D",59,60).>,
-									"tram6"+> <.	("A",0,4),
-													("B",15,17),
-													("C",29,31),
-													("B",46,48),
-													("D",59,60).>]
+		TimeTableRightExample: TimeTable = ["T2" +> T1Plan, 
+											"T5" +> T5Plan],
+											
+		TimeTableInValidExample: 
+					TimeTable = ["T1" +> T1Plan, 
+								"T2" +> T2Plan,
+								"T6" +> T6PlanInValid],
+	    										
+		TimeTableStopOverloadExample:
+					 TimeTable = ["T1" +> T1Plan, 
+								"T2" +> T2Plan,
+								"T3" +> T3Plan,
+								"T5" +> T5Plan,
+								"T7" +> T7Plan,
+								"T8" +> T8Plan]
 													
 	test_case
-		--[empty] empty,
-		--check TimeTable	
-		--[addTram]addTram("tram2",timeTable),
-		--[addTram1]addTram("tram3",timeTable),
-		--[addStop]addStop("tram1","B",46,48,timeTable),
-		--[addStop1]addStop("tram1","D",46,48,timeTable),
+	
+	    -----------------------------Test Cases for Generator functions ------------------------------
+		-- Add a exist tram to empty the whole timetable of this tram
+		[addExsitTram]addTram("T2",TimeTableRightExample),
 		
-		--check plan
-		[isValidPlan]isValidPlan(unVaplan,netValue),
-		[isValidPlan1]isValidPlan(vaplan,netValue),
-		[isValidPlan2]isValidPlan(T5Plan,netValue),
-		--[checkIsValidPlanForEachTram]checkIsValidPlanForEachTram(wholePlanSet,netValue),
-		--[checkIsValidPlanForEachTram11]checkIsValidPlanForEachTram11(wrtimeTable,netValue),
+		-- Add a new tram with an empty plan
+		[addNewTram]addTram("T4",TimeTableRightExample),
 		
-		[checkIsAtSameStopAtSameTime]checkIsAtSameStopAtSameTime(12,12),
-		[compareSubPlanTime]compareSubPlanTime(("B",11,14), {("B",12,14),("B",12,13),("B",45,53),("B",10,13)},0),	
+		-- Add a stop to a plan
+		[addStop]addStop("T1","B",46,48,TimeTableRightExample),
 		
-		[compareOneSubWithOnePlan]compareOneSubWithOnePlan(("B",11,14), T2Plan),
-	--	[compareOneSubWithAllPlans]compareOneSubWithAllPlans(("B",11,14),wholePlanSet,0),
-		[compareOneSubWithTimeTable]compareOneSubWithTimeTable(("B",11,14),wholeTimeTable,0),
+		 -----------------------------Test Cases for Observer functions ------------------------------
 		
-		[checkStopCapacity]checkStopCapacity(vaplan,wholeTimeTable,netValue),
-		[checkStopCapacity1]checkStopCapacity(vaplan,wrtimeTable,netValue),
+		--Check is the plan valid
+		[ValidPlan]isValidPlan(T1Plan,netValue),
+		[InValidPlan]isValidPlan(T6PlanInValid,netValue),
 		
-		[isWellformed]isWellformed(wrtimeTable,netValue),
-		[isWellformed1]isWellformed(wholeOverCapacityTimeTable,netValue),
-		[isWellformed2]isWellformed(wholeTimeTable,netValue),
+		--Check does the tram exist in timetable
+		[isInTimeTable]isIn("T2",TimeTableRightExample),
+		[isNotInTimetable]isIn("T7",TimeTableRightExample),
 		
-		--[checkIsValidPlanForEachTram]checkIsValidPlanForEachTram(wholeTimeTable,netValue),
+		------------------Test Cases for checking valid plan in whole time table ---------------------
 		
+		-- Check is valid plan set
+		[checkValidPlanSet]checkIsValidPlanSet(wholePlanSetRight,netValue),
+		[checkInValidPlanSet]checkIsValidPlanSet(InvalidPlanSet,netValue),
+		
+		-- Check are all the plans in time table valid 
+		[ValidPlanForWholeTimeTable]checkIsValidPlanForWholeTimeTable(TimeTableRightExample,netValue),
+		[InValidPlanForWholeTimeTable]checkIsValidPlanForWholeTimeTable(TimeTableInValidExample,netValue),
+		
+		------------------Test Cases for checking stop capacity ---------------------
+		-- Check do the trams stop at the same stop at same time
+		[checkIsAtSameStopAtSameTime]checkIsAtSameStopAtSameTime(11,17,20,18),
+		[checkIsNOTAtSameStopAtSameTime]checkIsAtSameStopAtSameTime(11,17,15,18),
+		
+		--Get the same stop from other plan
+		[getSameStopsFromOnePlan]getSameStopsFromOnePlan("B",T2Plan),
+		
+		--Compare time of one stop with all the other same stops to find the same stop count at same time
+		[compareSubPlanTime]compareSubPlanTime(("B",11,14), {("B",12,14),("B",12,13),("B",45,53),("B",10,13)},0),
+		
+		--Compare one subplan with a plan to find out the same stop at same time
+		[compareOneSubWithOnePlan]compareOneSubWithOnePlan(("B",11,14), T2Plan),	
+		
+		--Compare one subplan with a plan-set to find out the same stop at same time
+		[compareOneSubWithAllPlans]compareOneSubWithAllPlans(("B",11,14),wholePlanSetRight,0),
+		
+		--Compare one subplan with the whole timetable to find out the same stop at same time
+		[compareOneSubWithTimeTable]compareOneSubWithTimeTable(("B",11,14),TimeTableRightExample,0),
+		
+		--Check the stop capacity with the whole timetable
+		[checkStopCapacity]checkStopCapacity(T2Plan,TimeTableRightExample,netValue),
+		[checkOverloadStopCapacity]checkStopCapacity(T2Plan,TimeTableStopOverloadExample,netValue),
+		
+		------------------Test Cases for checking connection capacity and headway ---------------------
+		-- 
 		[retrievePairCombination1] retrievePairCombination(T1Plan,<..>),
 		[retrievePairCombination2] retrievePairCombination(T2Plan,<..>),
-		
 		
 		-- compare a pair of stops, and checking if they overlap timewise (conn. capacity)
 		[arePairConflictingR] arePairConflicting(
@@ -166,9 +174,14 @@ class
 		[comparePairWithAllOtherPlansHeadWayW] comparePairWithAllOtherPlansHeadWay((("A",0,1 ),("B",10,14)),
 							T1Plan,wholePlanSetWrong,netValue),
 		-- checking detection overflow, that is : both conn. capacity and headway
-		[detectConnectionOverflowOK] detectConnectionOverflow(wholeTimeTable,netValue),
+		--[detectConnectionOverflowOK] detectConnectionOverflow(wholeTimeTable,netValue),
 		[detectConnectionOverflowHeadway] detectConnectionOverflow(TimeTableHeadwayWrong,netValue),
-		[detectConnectionOverflowConnOverlap] detectConnectionOverflow(TimeTableConnOverlap,netValue)
+		[detectConnectionOverflowConnOverlap] detectConnectionOverflow(TimeTableConnOverlap,netValue),
+		
+		------------------Test Cases for isWellformed ---------------------
+				
+		[isWellformed]isWellformed(TimeTableRightExample,netValue),
+		[isWellformed1]isWellformed(TimeTableStopOverloadExample,netValue)
 		
 		
 end
