@@ -33,18 +33,18 @@ class
 		[addConnection] addConnection("A","B",2,3,10,net),
 		
 		-- checking whether if two connection definitions are equal 
-		[areEqual]areEqual("A","B","B","A"),
-		[areEqual1]areEqual("A","B","A","B"),
+		[areConnectionsEqual]areConnectionsEqual("A","B","B","A"),
+		[areConnectionsEqual1]areConnectionsEqual("A","B","A","B"),
 		
 		--check are directly connected
-		[areDirectlyConnected]areDirectlyConnected("D","B",netValue),
-		[areDirectlyConnected1]areDirectlyConnected("B","A",netValue),
-		[areDirectlyConnected2]areDirectlyConnected("A","C",netValue),
+		[areDirectlyConnectedR]areDirectlyConnected("D","B",netValue),
+		[areDirectlyConnectedR2]areDirectlyConnected("B","A",netValue),
+		[areDirectlyConnectedW]areDirectlyConnected("A","C",netValue),
 	
 		-- return minimum headway
 		[minHeadway] minHeadway("A","B",netValue),
 		[minHeadway1] minHeadway("B","D",netValue),
-		--if a connection doesn't exist we return 0
+		--if a connection doesn't exist the precondition catches it
 		[minHeadway2] minHeadway("A","D",netValue),
 		
 		
@@ -52,14 +52,14 @@ class
 		[minDrivingTime]minDrivingTime("A","B",netValue),
 		[minDrivingTime1]minDrivingTime("B","D",netValue),
 		[minDrivingTime2]minDrivingTime("C","B",netValue),
-		--if a connection doesn't exist we return 0
+		--if a connection doesn't  exist the precondition catches it
 		[minDrivingTime3]minDrivingTime("A","D",netValue),
 		
 		-- return capacity of a connection
 		[connectedCapacity] connectedCapacity("A","B",netValue),
 		[connectedCapacity1] connectedCapacity("B","D",netValue),
 		[connectedCapacity2] connectedCapacity("C","B",netValue),
-		--if a connection doesn't exist we return 0
+		--if a connection doesn't exist the precondition catches it
 		[connectedCapacity3] connectedCapacity("A","D",netValue),
 		
 		-- return capacity of a stop
@@ -69,8 +69,8 @@ class
 		[capacity2] capacity("F",netValue),
 	
 		-- checking different cases of isWellFormed
-		[isWellformed] isWellformed(netValue),
-		[netValueNotWF]  isWellformed(netValueNotWF1),
-		[netValueNotWF2] isWellformed(netValueNotWF2),
-		[netValueNotWF3] isWellformed(netValueNotWF3)
+		[isWellformedR] isWellformed(netValue),
+		[netValueNotW]  isWellformed(netValueNotWF1),
+		[netValueNotW2] isWellformed(netValueNotWF2),
+		[netValueNotW3] isWellformed(netValueNotWF3)
 end
