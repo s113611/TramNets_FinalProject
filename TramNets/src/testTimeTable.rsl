@@ -181,7 +181,9 @@ class
 		------------------Test Cases for isWellformed ---------------------
 				
 		[isWellformed]isWellformed(TimeTableRightExample,netValue),
-		[isWellformed1]isWellformed(TimeTableStopOverloadExample,netValue)
+		[isWellformedWrongStopCapacity]isWellformed(TimeTableStopOverloadExample,netValue),
+		[isWellformedWrongHeadway]isWellformed(TimeTableHeadwayWrong,netValue),
+		[isWellformedWrongConnCapacity]isWellformed(TimeTableConnOverlap,netValue)
 		
 		
 end
