@@ -42,16 +42,27 @@ class
     isIn(SID,Net) is SID isin dom Net,
  
    	-- support functions
-   	areConnectionsEqual : StopId >< StopId >< StopId >< StopId -> Bool
-   	areConnectionsEqual(SID1,SID2,SID3,SID4) is SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3,
+   	areStopIdsEqual : StopId >< StopId >< StopId >< StopId -> Bool
+   	areStopIdsEqual(SID1,SID2,SID3,SID4) is SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3,
    	
+   	
+   	areConnectionEqual : Connection >< Connection -> Bool
+   	areConnectionEqual(conn1,conn2) is 
+   		let
+   			(SID1,SID2,(capacity1,DTime1,HWay1)) = conn1,
+   			(SID3,SID4,(capacity2,DTime2,HWay2)) = conn1
+   		in
+   			(SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3)
+   			/\ (capacity1,DTime1,HWay1) = (capacity2,DTime2,HWay2)
+   		end,
+   		
 	-- is used to find a specfic connection
 	getConnection : Capacity >< Connection-set >< StopId >< StopId -> Connection
 	getConnection(cap,connectionSet,SID1,SID2) is
 		let
 			(sid1,sid2,(capacity,DTime,HWay)) = hd connectionSet
 		in
-			if (areConnectionsEqual(sid1,sid2,SID1,SID2)) then
+			if (areStopIdsEqual(sid1,sid2,SID1,SID2)) then
 				(sid1,sid2,(capacity,DTime,HWay))
 			else
 				getConnection(cap,connectionSet \ {hd connectionSet},SID1,SID2)
@@ -64,7 +75,7 @@ class
    		let
    			(capA,connectA) = n(SID)
    		in
-   			(exists (SID3,SID4,connectInfo): Connection :- (SID3,SID4,connectInfo) isin connectA /\ areConnectionsEqual(SID,SID2,SID3,SID4))
+   			(exists (SID3,SID4,connectInfo): Connection :- (SID3,SID4,connectInfo) isin connectA /\ areStopIdsEqual(SID,SID2,SID3,SID4))
    		end
    	pre isWellformed(n),
    	
@@ -124,7 +135,7 @@ class
 	   				(all (sid1,sid2,connInfo) : Connection :- (sid1,sid2,connInfo) isin connectA => 
 	   					-- There should not exists two connections in a connection-list where the stops are identical
 	   					(all (sid3,sid4,connInfo2) : Connection :- (sid3,sid4,connInfo2) isin connectA /\
-	   						 (sid3,sid4,connInfo2) ~= (sid1,sid2,connInfo) => ~areConnectionsEqual(sid1,sid2,sid3,sid4)) 
+	   						 (sid3,sid4,connInfo2) ~= (sid1,sid2,connInfo) => ~areStopIdsEqual(sid1,sid2,sid3,sid4)) 
 	   					/\
 	   				 	-- There should not exist a connection info where the capacity is 0
 	   					(let 
