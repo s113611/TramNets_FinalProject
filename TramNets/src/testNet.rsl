@@ -22,24 +22,31 @@ class
 		/*A net where stop C have a connection description that has capacity 0*/
 		netValueNotWF3: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
 							"B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
-							"C" +> (2, {("B","C",(0,12,4))})]
+							"C" +> (2, {("B","C",(0,12,4))})],
+							
+		netValueMissInfo: Net = [	"A" +> (2, {("A","B",(3,10,2))}), 
+						 	"B" +> (3, {("A","B",(3,10,2)),("B","D",(2,7,4))}), 
+						 	"C" +> (2, {("B","C",(3,12,4))}),
+						 	"D" +> (2, {("B","D",(2,7,4))})
+						 	]
 	test_case
 		[empty] empty,
 		-- inserting stop
-		[insertStop] insertStop("A",2,net),
-		[insertStopB] insertStop("B",3,net),
+		[insertExsitStop] insertStop("A",2,net),
+		[insertNewStopC] insertStop("C",2,net),
 		
 		-- adding a connectiong
-		[addConnection] addConnection("A","B",2,3,10,net),
+		[addExistStopsConnection] addConnection("A","B",2,3,10,net),
+		[addNonExistStopsConnection] addConnection("A","C",2,3,10,net),
 		
 		-- checking whether if two connection definitions are equal 
 		[areConnectionsEqual]areConnectionsEqual("A","B","B","A"),
 		[areConnectionsEqual1]areConnectionsEqual("A","B","A","B"),
 		
 		--check are directly connected
-		[areDirectlyConnectedR]areDirectlyConnected("D","B",netValue),
-		[areDirectlyConnectedR2]areDirectlyConnected("B","A",netValue),
-		[areDirectlyConnectedW]areDirectlyConnected("A","C",netValue),
+		[directlyConnected]areDirectlyConnected("A","B",netValue),
+		[directlyConnectedDiffDirection]areDirectlyConnected("B","A",netValue),
+		[NonDirectlyConnected]areDirectlyConnected("A","C",netValue),
 	
 		-- return minimum headway
 		[minHeadway] minHeadway("A","B",netValue),
@@ -50,10 +57,7 @@ class
 		
 		-- return minimum drivingtime
 		[minDrivingTime]minDrivingTime("A","B",netValue),
-		[minDrivingTime1]minDrivingTime("B","D",netValue),
-		[minDrivingTime2]minDrivingTime("C","B",netValue),
-		--if a connection doesn't  exist the precondition catches it
-		[minDrivingTime3]minDrivingTime("A","D",netValue),
+		[minDrivingTimeNonDirectConnected]minDrivingTime("A","D",netValue),
 		
 		-- return capacity of a connection
 		[connectedCapacity] connectedCapacity("A","B",netValue),
@@ -63,14 +67,15 @@ class
 		[connectedCapacity3] connectedCapacity("A","D",netValue),
 		
 		-- return capacity of a stop
-		[capacity] capacity("A",netValue),
+		[GetStopACapacity] capacity("A",netValue),
+		[GetStopFCapacity] capacity("F",netValue),
 		[capacity1] capacity("B",netValue),
 		--if the stop doesn't exist the precondition catches the error
-		[capacity2] capacity("F",netValue),
 	
 		-- checking different cases of isWellFormed
 		[isWellformedR] isWellformed(netValue),
 		[netValueNotW]  isWellformed(netValueNotWF1),
 		[netValueNotW2] isWellformed(netValueNotWF2),
-		[netValueNotW3] isWellformed(netValueNotWF3)
+		[netValueNotW3] isWellformed(netValueNotWF3),
+		[netValueNotW4] isWellformed(netValueMissInfo)
 end
