@@ -46,16 +46,54 @@ class
    	areStopIdsEqual(SID1,SID2,SID3,SID4) is SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3,
    	
    	
+   	-- checks if two connections are equal
    	areConnectionEqual : Connection >< Connection -> Bool
    	areConnectionEqual(conn1,conn2) is 
    		let
    			(SID1,SID2,(capacity1,DTime1,HWay1)) = conn1,
-   			(SID3,SID4,(capacity2,DTime2,HWay2)) = conn1
+   			(SID3,SID4,(capacity2,DTime2,HWay2)) = conn2
    		in
-   			(SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3)
+   			(SID1 = SID3 /\ SID2 = SID4) \/ (SID1 = SID4 /\ SID2 = SID3)
    			/\ (capacity1,DTime1,HWay1) = (capacity2,DTime2,HWay2)
    		end,
-   		
+   	
+   	-- find a connection-set for a stop id and check that all connections match with the oposite stopId
+   	otherConnectionExists : StopId >< Connection-set >< Net -> Bool
+   	otherConnectionExists(SID,connectionSet,net) is 
+	  let
+	  	(sid1,sid2,(capacity,DTime,HWay)) = hd connectionSet,
+	  	compareSid = returnSID(SID,sid1,sid2)
+	  in
+	  	if (opositeStopConnectionExists(compareSid,(sid1,sid2,(capacity,DTime,HWay)),net)) then
+	  		true
+	  	else
+	  		if (card(connectionSet) > 1 ) then
+	  			otherConnectionExists(SID,connectionSet \ {(sid1,sid2,(capacity,DTime,HWay))},net)
+	  		else
+	  			false
+	  		end
+	  	end	
+	  end,
+	
+	-- return the SID which is not the same as input SID
+	returnSID : StopId >< StopId >< StopId -> StopId
+	returnSID(SID,sid1,sid2) is
+		if (SID = sid1) then
+			sid2
+		else
+			sid1
+		end,
+		
+	-- checks if the oposite connection exists
+	opositeStopConnectionExists : StopId >< Connection >< Net -> Bool
+	opositeStopConnectionExists(SID,connection,net) is
+		let
+			(capacity,connectionSet) = net(SID)
+		in
+			(exists (sid1,sid2,connInfo1) : Connection :- (sid1,sid2,connInfo1) isin connectionSet /\
+				areConnectionEqual(connection,(sid1,sid2,connInfo1)))
+		end,		
+	  	
 	-- is used to find a specfic connection
 	getConnection : Capacity >< Connection-set >< StopId >< StopId -> Connection
 	getConnection(cap,connectionSet,SID1,SID2) is
@@ -145,7 +183,9 @@ class
 	   					end)
 	   				)
 	   				--no stop should contain empty connection-list or have a capacity of 0 (defeats the purpose) 
-	   				/\ (capA ~= 0 /\ connectA ~= {})		
+	   				/\ (capA ~= 0 /\ connectA ~= {})
+	   				--	
+	   				/\ otherConnectionExists(SID,connectA,n)	
 	   			end)
    			)
 	end  

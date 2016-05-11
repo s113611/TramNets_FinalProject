@@ -40,8 +40,8 @@ class
 		[addNonExistStopsConnection] addConnection("A","C",2,3,10,net),
 		
 		-- checking whether if two connection definitions are equal 
-		[areConnectionsEqual]areConnectionsEqual("A","B","B","A"),
-		[areConnectionsEqual1]areConnectionsEqual("A","B","A","B"),
+		[areStopIdsEqual]areStopIdsEqual("A","B","B","A"),
+		[areStopIdsEqual1]areStopIdsEqual("A","B","A","B"),
 		
 		--check are directly connected
 		[directlyConnected]areDirectlyConnected("A","B",netValue),
@@ -77,5 +77,10 @@ class
 		[netValueNotW]  isWellformed(netValueNotWF1),
 		[netValueNotW2] isWellformed(netValueNotWF2),
 		[netValueNotW3] isWellformed(netValueNotWF3),
-		[netValueNotW4] isWellformed(netValueMissInfo)
+		[netValueNotW4] isWellformed(netValueMissInfo),
+		
+		[areConnectionEqualR] areConnectionEqual(("A","B",(3,10,2)),("B","A",(3,10,2))),
+		[areConnectionEqualW] areConnectionEqual(("A","B",(3,7,2)),("B","A",(3,10,2))),
+		[otherConnectionExistsR] otherConnectionExists("B",{("B","D",(2,7,4))},netValueMissInfo),
+		[otherConnectionExistsW] otherConnectionExists("A",{("A","B",(3,13,3))},netValueMissInfo)
 end
