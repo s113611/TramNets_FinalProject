@@ -319,11 +319,12 @@ class
 	comparePairWithAllOtherPlansHeadWay(subPlanPair,plan,planSet,net) is 
 		(exists plan2 : Plan :- plan2 isin planSet /\ plan2 ~= plan /\
 			comparePairWithOnePlanHeadway(subPlanPair,plan2,net))
-
 	
   value /* predicates to check time tables */   
       isWellformed : TimeTable >< Net -> Bool
       isWellformed(t, n) is
+      		-- check if the net is well formed
+      		isWellformed(n) /\ 
         	-- check is it valid plan for each tram
       		checkIsValidPlanForWholeTimeTable(t,n) /\ 
       		--check capacity of all stops

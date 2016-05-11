@@ -9,6 +9,11 @@ class
 						 	"C" +> (2, {("B","C",(3,12,4))}),
 						 	"D" +> (2, {("B","D",(2,7,3))})
 						 	],
+						 	
+		/*A net where stop A references two of the same connections*/
+		netValueNotWF1: Net = ["A" +> (2, {("A","B",(3,10,2)),("A","B",(2,10,2))}), 
+							"B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
+							"C" +> (2, {("B","C",(3,12,4))})],
 		
 		T1Plan: Plan = <.	("A",1,2),
 							("B",13,15),
@@ -19,7 +24,7 @@ class
 							("B",46,48),
 							("A",59,60)
 							.>,
-		T3Plan: Plan = <.	("A",2,4),
+		T3Plan: Plan = <.	("A",3,4),
 							("B",14,16),
 							("C",30,34).>,
 		T4Plan: Plan = <.	("A",3,5),
@@ -46,16 +51,19 @@ class
 							("D",28,32),
 							("B",47,50),
 							("D",58,60).>,
+		T9Plan: Plan = <.	("D",1,7),
+							("B",17,20).>,
+		T10Plan: Plan = <.	("D",8,12),
+							("B",22,30).>,
 							
 		wholePlanSetWrong: Plan-set = {T1Plan,T2Plan,T3Plan,T4Plan,T5Plan},	
 		wholePlanSetRight : Plan-set = {T1Plan,T5Plan},
 		InvalidPlanSet : Plan-set = {T1Plan,T6PlanInValid},
 		
 		TimeTableConnOverlap: 
-					TimeTable = ["T1" +> T1Plan, 
-								"T2" +> T2Plan,
-								"T3" +> T3Plan,
-								"T4" +> T4Plan],
+					TimeTable = ["T7" +> T7Plan,
+								"T9" +> T9Plan,
+								"T10" +> T10Plan],
 		TimeTableHeadwayWrong:
 					TimeTable = ["T1" +> T1Plan, 
 								"T2" +> T2Plan,
@@ -70,10 +78,7 @@ class
 								"T6" +> T6PlanInValid],
 	    										
 		TimeTableStopOverloadExample:
-					 TimeTable = ["T1" +> T1Plan, 
-								"T2" +> T2Plan,
-								"T3" +> T3Plan,
-								"T5" +> T5Plan,
+					 TimeTable = ["T5" +> T5Plan,
 								"T7" +> T7Plan,
 								"T8" +> T8Plan]
 													
@@ -181,6 +186,7 @@ class
 		------------------Test Cases for isWellformed ---------------------
 				
 		[isWellformed]isWellformed(TimeTableRightExample,netValue),
+		[isWellformedWrongNet]isWellformed(TimeTableRightExample,netValueNotWF1),
 		[isWellformedWrongStopCapacity]isWellformed(TimeTableStopOverloadExample,netValue),
 		[isWellformedWrongHeadway]isWellformed(TimeTableHeadwayWrong,netValue),
 		[isWellformedWrongConnCapacity]isWellformed(TimeTableConnOverlap,netValue)
