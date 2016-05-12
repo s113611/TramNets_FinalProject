@@ -11,20 +11,20 @@ class
 						 	"D" +> (2, {("B","D",(2,7,4))})
 						 	],
 		/*A net where stop A references two of the same connections*/
-		netValueNotWF1: Net = ["A" +> (2, {("A","B",(3,10,2)),("A","B",(2,10,2))}), 
+		netValueSameConnections: Net = ["A" +> (2, {("A","B",(3,10,2)),("A","B",(2,10,2))}), 
 							"B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
 							"C" +> (2, {("B","C",(3,12,4))})],
 							
 		/*A net where stop B have capacity of 0*/
-		netValueNotWF2: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
+		netValueNonStopCapacity: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
 							"B" +>(0, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
 							"C" +> (2, {("B","C",(3,12,4))})],
 		/*A net where stop C have a connection description that has capacity 0*/
-		netValueNotWF3: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
+		netValueNonConnectionCapacity: Net = ["A" +> (2, {("A","B",(3,10,2))}), 
 							"B" +>(3, {("A","B",(3,10,2)),("B","C",(3,12,4))}), 
 							"C" +> (2, {("B","C",(0,12,4))})],
 							
-		netValueMissInfo: Net = [	"A" +> (2, {("A","B",(3,10,2))}), 
+		netValueDiffConnectionInfo: Net = [	"A" +> (2, {("A","B",(3,10,2))}), 
 						 	"B" +> (3, {("A","B",(3,10,2)),("B","D",(2,7,4))}), 
 						 	"C" +> (2, {("B","C",(3,12,4))}),
 						 	"D" +> (2, {("B","D",(2,7,4))})
@@ -40,8 +40,8 @@ class
 		[addNonExistStopsConnection] addConnection("A","C",2,3,10,net),
 		
 		-- checking whether if two connection definitions are equal 
-		[areStopIdsEqual]areStopIdsEqual("A","B","B","A"),
-		[areStopIdsEqual1]areStopIdsEqual("A","B","A","B"),
+		[areConnectionsEqual]areStopIdsEqual("A","B","B","A"),
+		[areConnectionsEqual1]areStopIdsEqual("A","B","A","B"),
 		
 		--check are directly connected
 		[directlyConnected]areDirectlyConnected("A","B",netValue),
@@ -75,14 +75,14 @@ class
 		-- where are checking that if a connection exist for a stop, the oposite should also exists
 		[areConnectionEqualR] areConnectionEqual(("A","B",(3,10,2)),("B","A",(3,10,2))),
 		[areConnectionEqualW] areConnectionEqual(("A","B",(3,7,2)),("B","A",(3,10,2))),
-		[opositeStopConnectionExists] opositeStopConnectionExists("B", ("C","B",(3,12,4)),netValueMissInfo),
-		[otherConnectionExistsR] otherConnectionExists("B", {("B","C",(3,12,4))},netValueMissInfo),
-		[otherConnectionExistsW] otherConnectionExists("A",{("A","B",(3,13,3))},netValueMissInfo),
+		[opositeStopConnectionExists] opositeStopConnectionExists("B", ("C","B",(3,12,4)),netValueDiffConnectionInfo),
+		[otherConnectionExistsR] otherConnectionExists("B", {("B","C",(3,12,4))},netValueDiffConnectionInfo),
+		[otherConnectionExistsW] otherConnectionExists("A",{("A","B",(3,13,3))},netValueDiffConnectionInfo),
 		
 		-- checking different cases of isWellFormed
-		[isWellformedR] isWellformed(netValue),
-		[netValueNotW]  isWellformed(netValueNotWF1),
-		[netValueNotW2] isWellformed(netValueNotWF2),
-		[netValueNotW3] isWellformed(netValueNotWF3),
-		[netValueNotW4] isWellformed(netValueMissInfo)
+		[wellFormedNet] isWellformed(netValue),
+		[NotWFSameConnectionForOneStop] isWellformed(netValueSameConnections),
+		[NotWFNonStopCapacity] isWellformed(netValueNonStopCapacity),
+		[NotWFNonConnectionCapacity] isWellformed(netValueNonConnectionCapacity),
+		[NotWFDiffConnectionInfo] isWellformed(netValueDiffConnectionInfo)
 end
