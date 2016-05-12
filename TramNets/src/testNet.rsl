@@ -72,15 +72,17 @@ class
 		[capacity1] capacity("B",netValue),
 		--if the stop doesn't exist the precondition catches the error
 	
+		-- where are checking that if a connection exist for a stop, the oposite should also exists
+		[areConnectionEqualR] areConnectionEqual(("A","B",(3,10,2)),("B","A",(3,10,2))),
+		[areConnectionEqualW] areConnectionEqual(("A","B",(3,7,2)),("B","A",(3,10,2))),
+		[opositeStopConnectionExists] opositeStopConnectionExists("B", ("C","B",(3,12,4)),netValueMissInfo),
+		[otherConnectionExistsR] otherConnectionExists("B", {("B","C",(3,12,4))},netValueMissInfo),
+		[otherConnectionExistsW] otherConnectionExists("A",{("A","B",(3,13,3))},netValueMissInfo),
+		
 		-- checking different cases of isWellFormed
 		[isWellformedR] isWellformed(netValue),
 		[netValueNotW]  isWellformed(netValueNotWF1),
 		[netValueNotW2] isWellformed(netValueNotWF2),
 		[netValueNotW3] isWellformed(netValueNotWF3),
-		[netValueNotW4] isWellformed(netValueMissInfo),
-		
-		[areConnectionEqualR] areConnectionEqual(("A","B",(3,10,2)),("B","A",(3,10,2))),
-		[areConnectionEqualW] areConnectionEqual(("A","B",(3,7,2)),("B","A",(3,10,2))),
-		[otherConnectionExistsR] otherConnectionExists("B",{("B","D",(2,7,4))},netValueMissInfo),
-		[otherConnectionExistsW] otherConnectionExists("A",{("A","B",(3,13,3))},netValueMissInfo)
+		[netValueNotW4] isWellformed(netValueMissInfo)
 end
