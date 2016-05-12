@@ -53,7 +53,7 @@ class
    			(SID1,SID2,(capacity1,DTime1,HWay1)) = conn1,
    			(SID3,SID4,(capacity2,DTime2,HWay2)) = conn2
    		in
-   			(SID1 = SID3 /\ SID2 = SID4 \/ SID1 = SID4 /\ SID2 = SID3)
+   			areStopIdsEqual(SID1,SID2,SID3,SID4)
    			/\ (capacity1,DTime1,HWay1) = (capacity2,DTime2,HWay2)
    		end,
    	
@@ -64,13 +64,13 @@ class
 	  	(sid1,sid2,(capacity,DTime,HWay)) = hd connectionSet,
 	  	compareSid = returnSID(SID,sid1,sid2)
 	  in
-	  	if (opositeStopConnectionExists(compareSid,(sid1,sid2,(capacity,DTime,HWay)),net)) then
-	  		true
+	  	if (~opositeStopConnectionExists(compareSid,(sid1,sid2,(capacity,DTime,HWay)),net)) then
+	  		false
 	  	else
 	  		if (card(connectionSet) > 1 ) then
 	  			otherConnectionExists(SID,connectionSet \ {(sid1,sid2,(capacity,DTime,HWay))},net)
 	  		else
-	  			false
+	  			true
 	  		end
 	  	end	
 	  end,
